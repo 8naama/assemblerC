@@ -3,7 +3,10 @@
 enum SymbolType {
     mdefine,
     code,
-    data,
+    data
+};
+
+enum SymbolUpdateMethod {
     external,
     entry,
     relocatable
@@ -12,13 +15,14 @@ enum SymbolType {
 typedef struct Symbol {
     char name[MAX_LABEL_NAME_LEN];
     enum SymbolType type;
+    enum SymbolUpdateMethod method;
     int value;
     struct Symbol *next;
 } Symbol;
 
 typedef struct MemoryData {
     int decimalAddress;
-    char binary[12];
+    char binary[11];
     struct MemoryData *next;
 } MemoryData;
 

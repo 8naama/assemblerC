@@ -7,6 +7,8 @@
 #define EXTERNAL_FILE_TYPE ".ex"
 #define OBJECT_FILE_TYPE ".ob"
 
+char *SPECIAL_ENCODING[4] = {"*", "#", "%", "!"};
+
 FILE *currFile;
 
 
@@ -48,10 +50,29 @@ void _generateEntryAndExternalFiles(char filename[], struct Symbol *symbolsHead)
 }
 
 
-char *_encodeWord(char word)
+char *_encodeWord(char word[])
 {
-    printf("skip encode word\n");
-    return "*&!##!*";
+    /* Initializing varo= */
+    char twoBinaryDigits[3] = "";
+    char wordEncoded[8] = "";
+
+    /* Translate base2 >> base4 >> special encoding */
+    int i;
+    for (i=0; i < 14; i+=2) {  /* TODO: replace 14 with hardcoded var */
+        twoBinaryDigits[3] = "";
+        strncpy(twoBinaryDigits, word, 2);
+        word += 2;
+
+        if (strcmp(twoBinaryDigits, "00") == 0)
+            strcat(wordEncoded, SPECIAL_ENCODING[0]);  /* 00 = 0 */
+        else if (strcmp(twoBinaryDigits, "01") == 0)
+            strcat(wordEncoded, SPECIAL_ENCODING[1]);  /* 01 = 1 */
+        else if (strcmp(twoBinaryDigits, "10") == 0)
+            strcat(wordEncoded, SPECIAL_ENCODING[2]);  /* 10 = 2 */
+        else if (strcmp(twoBinaryDigits, "11") == 0)
+            strcat(wordEncoded, SPECIAL_ENCODING[3]);  /* 11 = 3 */
+    }
+    return wordEncoded;
 }
 
 
@@ -59,7 +80,7 @@ void _generateObjectFile(char filename[], int instCount, int dataCount, struct M
 {
     /* Initializing file names and the current Symbol */
     char objectFileName[100];
-    char header[5];
+    char header[10];
     MemoryData *currLine = binaryWordHead;
     MemoryData *tmp;
     sprintf(objectFileName, "%s%s", filename, OBJECT_FILE_TYPE);
@@ -72,7 +93,8 @@ void _generateObjectFile(char filename[], int instCount, int dataCount, struct M
     while (currLine) {
         char newline[50];
 
-        sprintf(newline, "%d\t%s", currLine->decimalAddress, _encodeWord(currLine->binary));
+        snprintf(newline, 50, "%d\t%s", currLine->decimalAddress, _encodeWord(currLine->binary));
+        printf("%s\n", newline);
         _writeToFile(objectFileName, newline);
 
         tmp = currLine->next;
@@ -110,12 +132,11 @@ int main()
     Symbol second = {"X", el, en, 200, &first};
     Symbol third = {"LINE", el, ex, 10, &second};
 
-    MemoryData test = {101, "101011001110"};
-    MemoryData test2 = {100, "010110011101", &test};
+    MemoryData test = {101, "00000001100000"}; /* ***#%** */
+    MemoryData test2 = {100, "00000000011100", &test};
 
     printf("main test run\n");
     generateFiles("justatest", &third, 10, 11, &test2);
     printf("did it work?\n");
     return 0;
 }
-

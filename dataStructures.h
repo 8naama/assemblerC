@@ -22,7 +22,6 @@ typedef struct Symbol {
 
 typedef struct MemoryData {
     int decimalAddress;
-    char binary[11];
+    char binary[14];
     struct MemoryData *next;
 } MemoryData;
-

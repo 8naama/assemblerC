@@ -1,17 +1,16 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include "dataStructures.h"
+#include "filesGenerator.h"
 
-#define ENTRY_FILE_TYPE ".en"
-#define EXTERNAL_FILE_TYPE ".ex"
-#define OBJECT_FILE_TYPE ".ob"
-
-char *SPECIAL_ENCODING[4] = {"*", "#", "%", "!"};
 
 FILE *currFile;
 
 
+/*
+Writes the given newline to the given filename.
+
+Input: filename of the file, newline to add to the file
+Output: None
+*/
 void _writeToFile(char filename[], char newline[]) 
 {
     currFile = fopen(filename, "a");
@@ -20,6 +19,14 @@ void _writeToFile(char filename[], char newline[])
 }
 
 
+/*
+Genrates EXTERNAL_FILE_TYPE and ENTRY_FILE_TYPE based on the given Symbol structure.
+If there are no symbols with entry as method, does not generate the relevant file.
+Same behaviour happens for external method.
+
+Input: filename of the new files, Symbol structure
+Output: None
+*/
 void _generateEntryAndExternalFiles(char filename[], struct Symbol *symbolsHead)
 {
     /* Initializing file names and the current Symbol */
@@ -44,22 +51,29 @@ void _generateEntryAndExternalFiles(char filename[], struct Symbol *symbolsHead)
             _writeToFile(externalFileName, newline);
 
         tmp = currSymbol->next;
-        /*free(currSymbol);*/ /* TODO: check how memory cleaning works*/
+        /*free(currSymbol);*/ /* Uncomment this in final run, when the data structures are taking up memory */
         currSymbol = tmp;
     }
 }
 
 
+/*
+Encodes the given word based on base2 >> base4 >> SPECIAL_ENCODING.
+
+Input: word in base 2 to encode
+Output: word encoded
+*/
 char *_encodeWord(char word[])
 {
     /* Initializing varo= */
-    char twoBinaryDigits[3] = "";
-    char wordEncoded[8] = "";
+    char twoBinaryDigits[3];
+    char *wordEncoded;
+    wordEncoded = (char *) malloc(8);
 
     /* Translate base2 >> base4 >> special encoding */
     int i;
-    for (i=0; i < 14; i+=2) {  /* TODO: replace 14 with hardcoded var */
-        twoBinaryDigits[3] = "";
+    for (i=0; i < 14; i+=2) {
+        twoBinaryDigits[0] = '\0';
         strncpy(twoBinaryDigits, word, 2);
         word += 2;
 
@@ -76,6 +90,13 @@ char *_encodeWord(char word[])
 }
 
 
+/*
+Generates OBJECT_FILE_TYPE file containing a header with instCount and dataCount
+and binaryWordHead lines encoded.
+
+Input: filename of the new file, instCount (number of instructions), dataCount (number of data lines) and MemoryData structure.
+Output: None
+*/
 void _generateObjectFile(char filename[], int instCount, int dataCount, struct MemoryData *binaryWordHead) 
 {
     /* Initializing file names and the current Symbol */
@@ -98,7 +119,7 @@ void _generateObjectFile(char filename[], int instCount, int dataCount, struct M
         _writeToFile(objectFileName, newline);
 
         tmp = currLine->next;
-        /*free(currLine);*/ /* TODO: check how memory cleaning works*/
+        /*free(currLine);*/ /* Uncomment this in final run, when the data structures are taking up memory */
         currLine = tmp;
     }
 }
@@ -140,3 +161,4 @@ int main()
     printf("did it work?\n");
     return 0;
 }
+

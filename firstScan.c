@@ -100,11 +100,74 @@ enum lineType _findInstructionType(char line[])
 
 
 struct Symbol *_saveLabelToTable(struct Symbol *pointer, char label[], enum SymbolType type, enum SymbolUpdateMethod method, int value) {
+	// Need to make sure here if a Label already exists or not,
+	// FOR EXAMPLE: .entry and .extern come before the value does 
+	// so we need to keep just the SymbolUpdateMethod on the side until we get to the value
 
+	// Maybe something like:
+	// if exists in the table >> check SymbolUpdateMethod, if it's entry or external then don't keep the new val
+	// OR something like:
+	// keep side list with label names that already came up and flags for entry, extern and saved true/false
+	// once we get new var we check if it exists already (saved) or not
+	// if not saved - save it wih relevant details and add the name to the array
+	// if saved - throw error
 } // I want this to return pointer to our Symbols table
 
 
-int _handleDataLine(char line[]) {}  // TODO: finish this
+char *_findLabel(char line[])
+{
+	char *label, *tempLine;
+
+	/* copy the line to a temp field to not edit org line and search for label */
+	tempLine = (char *) malloc(strlen(line)+1);
+	strcpy(tempLine, line);
+	label = strtok(tempLine, LABEL_SIGN);
+
+	/* label was found, verify length limitation */
+	if (strcmp(label, line) =! 0 && strlen(label) > MAX_LABEL_NAME_LEN) {
+		printf("error: label %s is passing the allowed %d characters limit.\n", label, MAX_LABEL_NAME_LEN);
+		exit(1);
+		// return NULL;
+	}
+	/* valid label was found, return it */
+	if (strcmp(label, line) =! 0)
+		return label;
+	return NULL;
+}
+
+
+int _handleDataLine(char line[])
+{
+	// How do we handle data line:
+	// 1. check if .define if so, keep in table + add 1 to decimalAddr
+	// 2. if not, find if label
+	// 3. if .entry or .external, turn flag on in the table
+	// 4. count arguments to know how many lines will it take up to add to currDecimalAddr
+	// Need to think if that's the best and if so create function that can search on the data structure 
+	// and return pointer
+
+	int linesAmount;
+	char *label, *tempLine;
+
+	label = _findLabel(line);
+
+	if (label != NULL) {
+		/* skip the label */
+		strcpy(tempLine, line);
+		strtok(tempLine, LABEL_SIGN);
+		tempLine = strtok(NULL, LABEL_SIGN);
+
+		// COLLECT INFORMATION HERE ABOUT the label value
+
+		_saveLabelToTable(label, data, relocatable, value);
+	}
+
+	// CHECK HERE IF mdefine
+
+	// CHECK HERE IF ENTRY / EXTERNAL
+
+
+}
 
 
 /*
@@ -114,18 +177,12 @@ int _handleDataLine(char line[]) {}  // TODO: finish this
 Input: String command and amount of expected arguments it should get.
 Output: number of lines the command will take if successful, -1 if there was an issue.
 */
-int _verifyCommandArgs(char command[], int reqArgsAmount) {
+int _verifyCommandArgs(char command[], int reqArgsAmount)
+{
 	int registryArgExists = 0,
 		currArgsCount = 0,
 		linesToAdd = 1;
 	char *currArg, *cmdName, *openSquare, *closeSquare;
-
-	/* need to verify 2 things here.
-	   1. currArgsCount = reqArgsAmount
-	   2. the arg type;
-	   		registries will create a single extra line >>per command<<
-	   		arg with X[Y] format will generate 2 extra lines
-	*/
 
 	/* Skip the command */
 	cmdName = strtok(command, " \t");
@@ -184,19 +241,15 @@ int _handleCodeLine(char line[], enum lineType type)
 	char *label, *tempLine;
 
 	/* copy the line to a temp field to not edit org line and search for label */
+	label = _findLabel(line);
 	tempLine = (char *) malloc(strlen(line)+1);
 	strcpy(tempLine, line);
-	label = strtok(tempLine, LABEL_SIGN);
+	strtok(tempLine, LABEL_SIGN);
 
-	/* label was found, verify lenght limitation */
-	if (strcmp(label, line) =! 0 && strlen(label) > MAX_LABEL_NAME_LEN) {
-		printf("error: label %s is passing the allowed %d characters limit.\n", label, MAX_LABEL_NAME_LEN);
-		return 1;
-	}
 	/* valid label was found, save it */
-	if (strcmp(label, line) =! 0) {
+	if (label != NULL) {
 		_saveLabelToTable(label, code, relocatable, currDecimalAddr);
-		tempLine = strtok(NULL, LABEL_SIGN); /* tempLine now holds the label too, move the next part of line to it */
+		tempLine = strtok(NULL, LABEL_SIGN); /* tempLine currently holds the label too, move the next part of line to it */
 	}
 
 	/* update the decimal address and varify the command is valid */

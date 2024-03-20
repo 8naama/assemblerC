@@ -82,23 +82,36 @@ Output: code type, data type or NULL for comments and empty lines
 */
 enum lineType _findInstructionType(char line[]) 
 {
+	char *tempLine;
+
+	/* copy the line to a temp field to not edit org line and search for label */
+	tempLine = (char *) malloc(strlen(line)+1);
+	strcpy(tempLine, line);
+
 	/* read the first word in the given line */
-	char *word = strtok(line, " \t");
+	char *word = strtok(tempLine, " \t");
 
 	/* continue reading words until we figure out the sentance type or reach it's end */
 	while (word != NULL) {
-		if (_startsWith(word, COMMENT_SIGN))
-			return NULL;
-		else if (_isData(word))
+		if (_startsWith(word, COMMENT_SIGN)) {
+			free(tempLine);
+			return none;
+		}
+		else if (_isData(word)) {
+			free(tempLine);
 			return data;
-		enum lineType codeType = _isCode(word)
-		if (codeType)
+		}
+		enum lineType codeType = _isCode(word);
+		if (codeType != none) {
+			free(tempLine);
 			return codeType;
+		}
 
 		/* read the next word in the given line */
         word = strtok(NULL, " \t");
     }
-	return NULL;
+    free(tempLine);
+	return none;
 }
 
 

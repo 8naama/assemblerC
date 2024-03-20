@@ -2,18 +2,19 @@
 
 #define READ_FILE_TYPE ".am"
 #define MAX_LINE_LEN 100  // TODO: MAKE SINGLE FILE FOR GENERAL VARS USED ACROSS THE PROGRAM
-#define COMMENT_SIGN ";"
-#define LABEL_SIGN ":"
+#define COMMENT_SIGN ';'
+#define LABEL_SIGN ':'
 
 
 enum lineType {
     code0,
     code1,
     code2,
-    data
+    data,
+    none
 };
 
-struct Symbol symbolTable;  /* Initialize the decimal addresses counter */
+struct Symbol symbolTable;
 
 char *commandTwoArgs[5] = {"mov", "cmp", "add", "sub", "lea"};
 char *commandOneArgs[9] = {"not", "clr", "inc", "dec", "jmp", "bne", "red", "prn", "jsr"};

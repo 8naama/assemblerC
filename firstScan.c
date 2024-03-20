@@ -25,13 +25,11 @@ Returns if the given Strings array contains the given word.
 Input: Array of strings and a word string.
 Output: 1 if array contains the word, 0 otherwise
 */
-int _stringArrayContains(char arr[], char word[]) 
+int _stringArrayContains(char *arr[], int arrLen, char word[]) 
 {
-	int len = sizeof(arr) / sizeof(arr[0]);
-
 	int i;
-	for (i=0; i < len; i++) {
-		if (strncmp(arr[i], word) == 0)
+	for (i=0; i < arrLen; i++) {
+		if (strcmp(arr[i], word) == 0)
 			return 1;
 	}
 	return 0;
@@ -46,7 +44,8 @@ Output: 1 if the word means the line is data line, 0 otherwise
 */
 int _isData(char word[]) 
 {
-	return _stringArrayContains(definitionAndDirective, word);
+	int length = sizeof(definitionAndDirective) / sizeof(definitionAndDirective[0]) - 1;
+	return _stringArrayContains(definitionAndDirective, length, word);
 }
 
 
@@ -61,13 +60,17 @@ Output: code type if the word is code, NULL otherwise
 */
 enum lineType _isCode(char word[]) 
 {
-	if (_stringArrayContains(commandNoArgs, word))
+	int length0 = sizeof(commandNoArgs) / sizeof(commandNoArgs[0]) - 1,
+		length1 = sizeof(commandOneArgs) / sizeof(commandOneArgs[0]) - 1,
+		length2 = sizeof(commandTwoArgs) / sizeof(commandTwoArgs[0]) - 1;
+
+	if (_stringArrayContains(commandNoArgs, length0, word))
 		return code0;
-	else if (_stringArrayContains(commandOneArgs, word))
+	else if (_stringArrayContains(commandOneArgs, length1, word))
 		return code1;
-	else if (_stringArrayContains(commandTwoArgs, word))
+	else if (_stringArrayContains(commandTwoArgs, length2, word))
 		return code2;
-	return NULL;
+	return none;
 }
 
 
@@ -122,15 +125,16 @@ char *_findLabel(char line[])
 	tempLine = (char *) malloc(strlen(line)+1);
 	strcpy(tempLine, line);
 	label = strtok(tempLine, LABEL_SIGN);
+	free(tempLine);
 
 	/* label was found, verify length limitation */
-	if (strcmp(label, line) =! 0 && strlen(label) > MAX_LABEL_NAME_LEN) {
+	if (strcmp(label, line) != 0 && strlen(label) > MAX_LABEL_NAME_LEN) {
 		printf("error: label %s is passing the allowed %d characters limit.\n", label, MAX_LABEL_NAME_LEN);
 		exit(1);
 		// return NULL;
 	}
 	/* valid label was found, return it */
-	if (strcmp(label, line) =! 0)
+	if (strcmp(label, line) != 0) 
 		return label;
 	return NULL;
 }
@@ -183,6 +187,7 @@ int _verifyCommandArgs(char command[], int reqArgsAmount)
 		currArgsCount = 0,
 		linesToAdd = 1;
 	char *currArg, *cmdName, *openSquare, *closeSquare;
+	int length = sizeof(registriesNames) / sizeof(registriesNames[0]) - 1;
 
 	/* Skip the command */
 	cmdName = strtok(command, " \t");
@@ -195,7 +200,7 @@ int _verifyCommandArgs(char command[], int reqArgsAmount)
 		currArgsCount += 1;
 
 		/* check if it's registry argument */
-		if (_stringArrayContains(registriesNames, currArg) && !registryArgExists) {
+		if (_stringArrayContains(registriesNames, length, currArg) && !registryArgExists) {
 			registryArgExists = 1;
 			linesToAdd += 1;
 		}

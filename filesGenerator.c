@@ -137,27 +137,3 @@ void generateFiles(char filename[], struct Symbol *symbolsHead, int instCount, i
     _generateEntryAndExternalFiles(filename, symbolsHead);
     _generateObjectFile(filename, instCount, dataCount, binaryWordHead);
 }
-
-
-/*
-This main function is temporary for test purpose.
-*/
-int main()
-{
-    enum SymbolUpdateMethod ex = external;
-    enum SymbolUpdateMethod en = entry;
-    enum SymbolType el = code;
-
-    /*Symbol first, second, third;*/
-    Symbol first = {"sz", el, en, 23};
-    Symbol second = {"X", el, en, 200, &first};
-    Symbol third = {"LINE", el, ex, 10, &second};
-
-    MemoryData test = {101, "00000001100000"}; /* ***#%** */
-    MemoryData test2 = {100, "00000000011100", &test};
-
-    printf("main test run\n");
-    generateFiles("justatest", &third, 10, 11, &test2);
-    printf("did it work?\n");
-    return 0;
-}

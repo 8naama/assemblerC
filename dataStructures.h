@@ -25,3 +25,6 @@ typedef struct MemoryData {
     char binary[14];
     struct MemoryData *next;
 } MemoryData;
+
+
+struct Symbol *symbolTableHead;

@@ -2,7 +2,13 @@
 #include "dataStructures.h"
 
 
+// We need 2 pointers for the data structure. a global one, called head, which will be used by both scans,
+// and a local one next, that we will use to monitor the progress of the table and add the next item to it's 
+// next each time 
+
+
 int currDecimalAddr = 100;  /* Initialize the decimal addresses counter */
+struct Symbol *symbolTableNext = symbolTableHead;
 
 
 /*
@@ -115,19 +121,46 @@ enum lineType _findInstructionType(char line[])
 }
 
 
-struct Symbol *_saveLabelToTable(struct Symbol *pointer, char label[], enum SymbolType type, enum SymbolUpdateMethod method, int value) {
-	// Need to make sure here if a Label already exists or not,
-	// FOR EXAMPLE: .entry and .extern come before the value does 
-	// so we need to keep just the SymbolUpdateMethod on the side until we get to the value
+void *_saveSymbolToTable(char name[], enum SymbolType type, enum SymbolUpdateMethod method, int value) {
+	// if method == entry or extern >> check if exists already with relocatable as method
+	// if so, replace the method with the needed entry/extern
+	// if not exists already, keep only the method and name in the table
+	// otherwise, check if it already exists in general, and if so - throw an error and exit program.
+	// else, save to table
+	Symbol *alreadyExists;
 
-	// Maybe something like:
-	// if exists in the table >> check SymbolUpdateMethod, if it's entry or external then don't keep the new val
-	// OR something like:
-	// keep side list with label names that already came up and flags for entry, extern and saved true/false
-	// once we get new var we check if it exists already (saved) or not
-	// if not saved - save it wih relevant details and add the name to the array
-	// if saved - throw error
-} // I want this to return pointer to our Symbols table
+	/* new Symbol call is for .entry or .extern line */
+	if (method == entry || method == external) {
+		alreadyExists = findInSymbolsTable(name); /* TODO: function to create in dataStructures.c */
+
+		if (alreadyExists != NULL && alreadyExists->method == relocatable)
+			alreadyExists->method = method;
+	}
+	else {
+		alreadyExists = findInSymbolsTable(name);
+
+		/* new Symbol call is to update an already mentioned symbol at an .entry or .extern line */
+		if (alreadyExists->method == entry || alreadyExists->method == external) {
+			alreadyExists->type = type;
+			alreadyExists->value = value;
+		}
+		else if (alreadyExists == NULL) {
+			Symbol newItem = {name, type, method, value};
+
+			if (symbolTableHead == NULL) { /* The first item in the table */
+				symbolTableHead = &newItem;
+				symbolTableNext = &newItem;
+			} else {
+				symbolTableNext->next = &newItem;
+				symbolTableNext = &newItem
+			}
+		}
+		else {
+			printf("error: symbol %s already exists in symbol table and cannot be defined again.", name);
+			exit(1);
+		}
+	}
+}
 
 
 char *_findLabel(char line[])
@@ -176,7 +209,7 @@ int _handleDataLine(char line[])
 
 		// COLLECT INFORMATION HERE ABOUT the label value
 
-		_saveLabelToTable(label, data, relocatable, value);
+		_saveSymbolToTable(label, data, relocatable, value);
 	}
 
 	// CHECK HERE IF mdefine
@@ -266,7 +299,7 @@ int _handleCodeLine(char line[], enum lineType type)
 
 	/* valid label was found, save it */
 	if (label != NULL) {
-		_saveLabelToTable(label, code, relocatable, currDecimalAddr);
+		_saveSymbolToTable(label, code, relocatable, currDecimalAddr);
 		tempLine = strtok(NULL, LABEL_SIGN); /* tempLine currently holds the label too, move the next part of line to it */
 	}
 
@@ -296,7 +329,7 @@ int firstScan(char filename[])
     file = fopen(filename, "r");
 
     /* if failed to open the file, throws error */
-    if (fp == NULL) {
+    if (file == NULL) {
     	printf("error: the file: %s can't open\n" , filename); 
 	    return 1;
     }

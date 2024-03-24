@@ -1,6 +1,5 @@
-#include "firstScan.h"
 #include "dataStructures.h"
-
+#include "firstScan.h"
 
 // We need 2 pointers for the data structure. a global one, called head, which will be used by both scans,
 // and a local one next, that we will use to monitor the progress of the table and add the next item to it's 
@@ -8,7 +7,7 @@
 
 
 int currDecimalAddr = 100;  /* Initialize the decimal addresses counter */
-struct Symbol *symbolTableNext = symbolTableHead;
+struct Symbol *symbolTableNext;
 
 
 /*
@@ -105,7 +104,7 @@ enum lineType _findInstructionType(char line[])
 		}
 		else if (_isData(word)) {
 			free(tempLine);
-			return data;
+			return dataLine;
 		}
 		enum lineType codeType = _isCode(word);
 		if (codeType != none) {
@@ -121,45 +120,45 @@ enum lineType _findInstructionType(char line[])
 }
 
 
-void *_saveSymbolToTable(char name[], enum SymbolType type, enum SymbolUpdateMethod method, int value) {
-	// if method == entry or extern >> check if exists already with relocatable as method
-	// if so, replace the method with the needed entry/extern
-	// if not exists already, keep only the method and name in the table
-	// otherwise, check if it already exists in general, and if so - throw an error and exit program.
-	// else, save to table
+/*
+Recieves information for a new symbol to save, make sure it doesn't exist yet and saves it.
+Since .entry and .extern are separate from a Symbol value and type definitions, handles updating the
+Symbol's method or it's value and type accordingly.
+
+Input: the new symbol info; name ,type (data or code), method (external, entry, relocatable) and it's value.
+Output: 0 if saved successfuly, 1 otherwise.
+*/
+int *_saveSymbolToTable(char name[], enum SymbolType type, enum SymbolUpdateMethod method, int value) {
 	Symbol *alreadyExists;
 
-	/* new Symbol call is for .entry or .extern line */
-	if (method == entry || method == external) {
-		alreadyExists = findInSymbolsTable(name); /* TODO: function to create in dataStructures.c */
+	alreadyExists = findInSymbolsTable(name); /* TODO: function to create in dataStructures.c */
 
-		if (alreadyExists != NULL && alreadyExists->method == relocatable)
-			alreadyExists->method = method;
+	/* new Symbol */
+	if (alreadyExists == NULL) {
+		Symbol newItem = {name, type, method, value};
+
+		if (symbolTableHead == NULL) /* The first item in the table */
+			symbolTableHead = &newItem;
+		else 
+			symbolTableNext->next = &newItem;
+		symbolTableNext = &newItem
+		
 	}
 	else {
-		alreadyExists = findInSymbolsTable(name);
-
-		/* new Symbol call is to update an already mentioned symbol at an .entry or .extern line */
-		if (alreadyExists->method == entry || alreadyExists->method == external) {
+		/* we already saved the symbol's value and type, now we update that it's .entry or .extern */
+		if ((method == entry || method == external) && alreadyExists->method == relocatable)
+			alreadyExists->method = method;
+		/* we already saved that the symbol is .entry or .extern, now we update the value and line type*/
+		else if (alreadyExists->method == entry || alreadyExists->method == external) {
 			alreadyExists->type = type;
 			alreadyExists->value = value;
 		}
-		else if (alreadyExists == NULL) {
-			Symbol newItem = {name, type, method, value};
-
-			if (symbolTableHead == NULL) { /* The first item in the table */
-				symbolTableHead = &newItem;
-				symbolTableNext = &newItem;
-			} else {
-				symbolTableNext->next = &newItem;
-				symbolTableNext = &newItem
-			}
-		}
 		else {
 			printf("error: symbol %s already exists in symbol table and cannot be defined again.", name);
-			exit(1);
+			return 1;
 		}
 	}
+	return 0;
 }
 
 
@@ -186,37 +185,45 @@ char *_findLabel(char line[])
 }
 
 
-int _handleDataLine(char line[])
+int _handledataLine(char line[])
 {
 	// How do we handle data line:
-	// 1. check if .define if so, keep in table + add 1 to decimalAddr
-	// 2. if not, find if label
-	// 3. if .entry or .external, turn flag on in the table
-	// 4. count arguments to know how many lines will it take up to add to currDecimalAddr
-	// Need to think if that's the best and if so create function that can search on the data structure 
-	// and return pointer
+	// 1. check if .define if so, keep in table
+	// 2. if .entry or .external, turn flag on in the table
+	// 3. if not, find if label
+	// 4. if .data or .string, count arguments to know how many lines will it add to currDecimalAddr
 
-	int linesAmount;
-	char *label, *tempLine;
+	/* initializing variables */
+	int linesAmount = 0, 
+		value = -1, 
+		isSuccessful;
+	char *tempLine, key[MAX_LABEL_NAME_LEN];
+	enum SymbolType type = data;
+	enum SymbolUpdateMethod method = relocatable;
 
-	label = _findLabel(line);
+	if (_startsWith(line, ".define")) {
+		sscanf(s, ".define %s = %d", key, &value);
+		type = mdefine;
+	}
+	else if (_startsWith(line, ".entry")) {
+		sscanf(s, ".entry %s", key);
+		method = entry;
+	}
+	else if (_startsWith(line, ".extern")) {
+		sscanf(s, ".extern %s", key);
+		method = external;
+	}
+	else { /* .data or .string */  
+		key = *_findLabel(line);
+		value  = currDecimalAddr;
 
-	if (label != NULL) {
-		/* skip the label */
-		strcpy(tempLine, line);
-		strtok(tempLine, LABEL_SIGN);
-		tempLine = strtok(NULL, LABEL_SIGN);
-
-		// COLLECT INFORMATION HERE ABOUT the label value
-
-		_saveSymbolToTable(label, data, relocatable, value);
+		// for .string, will need to understand the legth of the string inside the "" = X
+	    // for .data, will need to count the amount of arguments it got = X
+		// so will do value = currDecimalAddr and then currDecimalAddr += X
 	}
 
-	// CHECK HERE IF mdefine
-
-	// CHECK HERE IF ENTRY / EXTERNAL
-
-
+	isSuccessful = _saveSymbolToTable(key, type, method, value);
+	return isSuccessful
 }
 
 
@@ -288,7 +295,7 @@ Output: 1 if there is an issue, 0 otherwise.
 */
 int _handleCodeLine(char line[], enum lineType type) 
 {
-	int linesAmount;
+	int linesAmount, isSuccessful;
 	char *label, *tempLine;
 
 	/* copy the line to a temp field to not edit org line and search for label */
@@ -299,7 +306,9 @@ int _handleCodeLine(char line[], enum lineType type)
 
 	/* valid label was found, save it */
 	if (label != NULL) {
-		_saveSymbolToTable(label, code, relocatable, currDecimalAddr);
+		isSuccessful = _saveSymbolToTable(label, code, relocatable, currDecimalAddr);
+		if (isSuccessful == 1) /* program failed */
+	        return isSuccessful;
 		tempLine = strtok(NULL, LABEL_SIGN); /* tempLine currently holds the label too, move the next part of line to it */
 	}
 
@@ -344,8 +353,8 @@ int firstScan(char filename[])
 	        if (isSuccessful == 1)  /* program failed */
 	        	return isSuccessful;
 	    }
-	    else if (lineType == data) {
-	        isSuccessful = _handleDataLine(line);
+	    else if (lineType == dataLine) {
+	        isSuccessful = _handledataLine(line);
 	        if (isSuccessful == 1)  /* program failed */
 	        	return isSuccessful;
 	    }

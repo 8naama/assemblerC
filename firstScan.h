@@ -1,4 +1,6 @@
+#include <<stdio.h>>
 #include <string.h>
+
 
 #define READ_FILE_TYPE ".am"
 #define MAX_LINE_LEN 100  // TODO: MAKE SINGLE FILE FOR GENERAL VARS USED ACROSS THE PROGRAM
@@ -10,7 +12,7 @@ enum lineType {
     code0,
     code1,
     code2,
-    data,
+    dataLine,
     none
 };
 

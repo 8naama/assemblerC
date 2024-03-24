@@ -28,3 +28,5 @@ typedef struct MemoryData {
 
 
 struct Symbol *symbolTableHead;
+
+Symbol *findInSymbolsTable(char name[])

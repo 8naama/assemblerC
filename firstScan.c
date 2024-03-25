@@ -1,10 +1,6 @@
 #include "dataStructures.h"
 #include "firstScan.h"
 
-// We need 2 pointers for the data structure. a global one, called head, which will be used by both scans,
-// and a local one next, that we will use to monitor the progress of the table and add the next item to it's 
-// next each time 
-
 
 int currDecimalAddr = 100;  /* Initialize the decimal addresses counter */
 struct Symbol *symbolTableNext;
@@ -162,6 +158,12 @@ int *_saveSymbolToTable(char name[], enum SymbolType type, enum SymbolUpdateMeth
 }
 
 
+/*
+Searchs for a label in the given line, if finds one, returns it, otherwise, return NULL.
+
+Input: String line
+Output: String Label value if found one, NULL otherwise.
+*/
 char *_findLabel(char line[])
 {
 	char *label, *tempLine;
@@ -176,7 +178,6 @@ char *_findLabel(char line[])
 	if (strcmp(label, line) != 0 && strlen(label) > MAX_LABEL_NAME_LEN) {
 		printf("error: label %s is passing the allowed %d characters limit.\n", label, MAX_LABEL_NAME_LEN);
 		exit(1);
-		// return NULL;
 	}
 	/* valid label was found, return it */
 	if (strcmp(label, line) != 0) 
@@ -185,22 +186,27 @@ char *_findLabel(char line[])
 }
 
 
-int _handledataLine(char line[])
-{
-	// How do we handle data line:
-	// 1. check if .define if so, keep in table
-	// 2. if .entry or .external, turn flag on in the table
-	// 3. if not, find if label
-	// 4. if .data or .string, count arguments to know how many lines will it add to currDecimalAddr
+/*
+Recieves a line that contains a known action from definitionAndDirective:
+1. collects the needed information on it
+2. updates the amount of decimal adress lines the command will take
+3. attempts to save or update a Symbol in the table according to [1]
 
+Input: String line
+Output: 0 if successful, 1 otherwise.
+*/
+int _handleDataLine(char line[])
+{
 	/* initializing variables */
 	int linesAmount = 0, 
-		value = -1, 
+		value = -1,
+		commaCount = 1, 
 		isSuccessful;
-	char *tempLine, key[MAX_LABEL_NAME_LEN];
+	char *tempLine, key[MAX_LABEL_NAME_LEN], currAction[7], *string, *ptr;
 	enum SymbolType type = data;
 	enum SymbolUpdateMethod method = relocatable;
 
+	/* get needed variables from each action type */
 	if (_startsWith(line, ".define")) {
 		sscanf(s, ".define %s = %d", key, &value);
 		type = mdefine;
@@ -213,22 +219,39 @@ int _handledataLine(char line[])
 		sscanf(s, ".extern %s", key);
 		method = external;
 	}
-	else { /* .data or .string */  
-		key = *_findLabel(line);
+	else { 
+		/* initialize the symbol value */  
 		value  = currDecimalAddr;
 
-		// for .string, will need to understand the legth of the string inside the "" = X
-	    // for .data, will need to count the amount of arguments it got = X
-		// so will do value = currDecimalAddr and then currDecimalAddr += X
-	}
+		/* check if .data or .string */  
+		sscanf(s, "%[^:]: .%s", key, currAction);
+		string = (char *) malloc(MAX_LINE_LEN-strlen(key)+1);
 
+		/* get needed variables from each action type */
+		if (currAction == "string") {
+			sscanf(s, "%[^:]: .string \"%[^\"]\"", key, string);
+			currDecimalAddr += strlen(string);
+		}
+		else { /* currAction = data */ 
+			sscanf(s, "%[^:]: .data %[^\n]", key, string);
+
+			/* count the commas in the data params */
+			ptr = string;
+			while ((ptr = strchr(ptr, ',')) != NULL) {
+		        commaCount++;
+		        ptr++;
+		    }
+		    currDecimalAddr += commaCount;
+		}
+	}
 	isSuccessful = _saveSymbolToTable(key, type, method, value);
 	return isSuccessful
 }
 
 
 /*
-1. Verify that the given command got reqArgsAmount arguments
+Recieves a line that contains a known action from commandNArgs:
+1. Verify that the given command got N (reqArgsAmount) arguments
 2. Counts the amount of decimal adress lines the command will take
 
 Input: String command and amount of expected arguments it should get.
@@ -308,7 +331,7 @@ int _handleCodeLine(char line[], enum lineType type)
 	if (label != NULL) {
 		isSuccessful = _saveSymbolToTable(label, code, relocatable, currDecimalAddr);
 		if (isSuccessful == 1) /* program failed */
-	        return isSuccessful;
+			return isSuccessful;
 		tempLine = strtok(NULL, LABEL_SIGN); /* tempLine currently holds the label too, move the next part of line to it */
 	}
 
@@ -354,7 +377,7 @@ int firstScan(char filename[])
 	        	return isSuccessful;
 	    }
 	    else if (lineType == dataLine) {
-	        isSuccessful = _handledataLine(line);
+	        isSuccessful = _handleDataLine(line);
 	        if (isSuccessful == 1)  /* program failed */
 	        	return isSuccessful;
 	    }

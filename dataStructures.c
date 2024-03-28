@@ -14,7 +14,7 @@ Symbol *findInSymbolsTable(char name[])
     while (currSymbol != NULL) {
         if (strcmp(currSymbol->name, name) == 0)  /* currSymbol.name = given name */
             return currSymbol;
-            currSymbol = currSymbol->next;
+        currSymbol = currSymbol->next;
     }
     return NULL;
 }

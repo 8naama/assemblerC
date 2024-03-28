@@ -92,26 +92,22 @@ enum lineType _findInstructionType(char line[])
 
     /* read the first word in the given line */
     word = strtok(tempLine, " \t");
+    free(tempLine);
 
     /* continue reading words until we figure out the sentance type or reach it's end */
-    while (word != NULL) {
-        if (_startsWith(word, COMMENT_SIGN)) {
-            free(tempLine);
+    while (word) {
+        if (_startsWith(word, COMMENT_SIGN))
             return none;
-        }
-        else if (_isData(word)) {
-            free(tempLine);
+        else if (_isData(word))
             return dataLine;
-        }
+
         codeType = _isCode(word);
-        if (codeType != none) {
-            free(tempLine);
+        if (codeType != none)
             return codeType;
-        }
+
         /* read the next word in the given line */
         word = strtok(NULL, " \t");
     }
-    free(tempLine);
     return none;
 }
 
@@ -130,19 +126,19 @@ int _saveSymbolToTable(char name[], enum SymbolType type, enum SymbolUpdateMetho
     alreadyExists = findInSymbolsTable(name);
 
     /* new Symbol */
-    if (alreadyExists == NULL) {
-    	newItem = malloc(sizeof(Symbol));
-        newItem->name = strdup(name);
+    if (!alreadyExists) {
+    newItem = (Symbol*) malloc(sizeof(Symbol));
+        strcpy(newItem->name, name);
         newItem->type = type;
         newItem->method = method;
         newItem->value = value;
         newItem->next = NULL;
 
-        if (symbolTableHead == NULL) /* The first item in the table */
-            symbolTableHead = &newItem;
+        if (!symbolTableHead) /* The first item in the table */
+            symbolTableHead = newItem;
         else
-            symbolTableNext->next = &newItem;
-        symbolTableNext = &newItem;
+            symbolTableNext->next = newItem;
+        symbolTableNext = newItem;
     }
     else {
         /* already saved the symbol's value and type, now update that it's .entry or .extern */
@@ -240,7 +236,7 @@ int _handleDataLine(char line[])
 
             /* count the commas in the data params */
             ptr = string;
-            while ((ptr = strchr(ptr, ',')) != NULL) {
+            while ((ptr = strchr(ptr, ','))) {
                 commaCount++;
                 ptr++;
             }
@@ -275,7 +271,7 @@ int _verifyCommandArgs(char command[], int reqArgsAmount)
     /* Split the args */
     currArg = strtok(args, ", ");
 
-    while (currArg != NULL) {
+    while (currArg) {
         currArgsCount += 1;
 
         /* check if it's registry argument */
@@ -331,7 +327,7 @@ int _handleCodeLine(char line[], enum lineType type)
     strtok(tempLine, LABEL_SIGN);
 
     /* valid label was found, save it */
-    if (label != NULL) {
+    if (label) {
         isSuccessful = _saveSymbolToTable(label, code, relocatable, currDecimalAddr);
         if (isSuccessful == 1) /* program failed */
             return isSuccessful;
@@ -366,7 +362,7 @@ int firstScan(char filename[])
     file = fopen(fullFileName, "r");
 
     /* if failed to open the file, throws error */
-    if (file == NULL) {
+    if (!file) {
         printf("error: the file: %s can't open\n" , fullFileName);
         return 1;
     }

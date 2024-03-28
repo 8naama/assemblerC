@@ -1,5 +1,7 @@
 #include <stddef.h>
+#include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 #define MAX_LABEL_NAME_LEN 31
 

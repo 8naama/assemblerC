@@ -1,3 +1,6 @@
+#include <stddef.h>
+#include <string.h>
+
 #define MAX_LABEL_NAME_LEN 31
 
 enum SymbolType {
@@ -29,4 +32,4 @@ typedef struct MemoryData {
 
 struct Symbol *symbolTableHead;
 
-Symbol *findInSymbolsTable(char name[])
+Symbol *findInSymbolsTable(char name[]);

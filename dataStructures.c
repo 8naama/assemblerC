@@ -9,12 +9,12 @@ Output: Pointer to the Symbol with the given name, or Null if it doesn't exist i
 */
 Symbol *findInSymbolsTable(char name[])
 {
-	Symbol *currSymbol = symbolTableHead;
+    Symbol *currSymbol = symbolTableHead;
 
-	while (currSymbol != NULL) {
-		if (strcmp(currSymbol->name, name) == 0)  /* currSymbol.name = given name */
-			return currSymbol;
-		currSymbol = currSymbol->next;
-	}
-	return NULL;
+    while (currSymbol != NULL) {
+        if (strcmp(currSymbol->name, name) == 0)  /* currSymbol.name = given name */
+            return currSymbol;
+            currSymbol = currSymbol->next;
+    }
+    return NULL;
 }

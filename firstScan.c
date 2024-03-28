@@ -14,9 +14,9 @@ Output: 1 if word starts with substring, 0 otherwise
 */
 int _startsWith(char *word, char *substring)
 {
-	if(strncmp(word, substring, strlen(substring)) == 0)
-		return 1;
-	return 0;
+    if(strncmp(word, substring, strlen(substring)) == 0)
+        return 1;
+    return 0;
 }
 
 
@@ -26,14 +26,14 @@ Returns if the given Strings array contains the given word.
 Input: Array of strings and a word string.
 Output: 1 if array contains the word, 0 otherwise
 */
-int _stringArrayContains(char *arr[], int arrLen, char word[]) 
+int _stringArrayContains(char *arr[], int arrLen, char word[])
 {
-	int i;
-	for (i=0; i < arrLen; i++) {
-		if (strcmp(arr[i], word) == 0)
-			return 1;
-	}
-	return 0;
+    int i;
+    for (i=0; i < arrLen; i++) {
+        if (strcmp(arr[i], word) == 0)
+            return 1;
+    }
+    return 0;
 }
 
 
@@ -43,10 +43,10 @@ Returns if the given word is in the definitionAndDirective array.
 Input: string word.
 Output: 1 if the word means the line is data line, 0 otherwise
 */
-int _isData(char word[]) 
+int _isData(char word[])
 {
-	int length = sizeof(definitionAndDirective) / sizeof(definitionAndDirective[0]) - 1;
-	return _stringArrayContains(definitionAndDirective, length, word);
+    int length = sizeof(definitionAndDirective) / sizeof(definitionAndDirective[0]) - 1;
+    return _stringArrayContains(definitionAndDirective, length, word);
 }
 
 
@@ -59,19 +59,19 @@ Returns if the given word is a known code word and it's type:
 Input: string word.
 Output: code type if the word is code, NULL otherwise
 */
-enum lineType _isCode(char word[]) 
+enum lineType _isCode(char word[])
 {
-	int length0 = sizeof(commandNoArgs) / sizeof(commandNoArgs[0]) - 1,
-		length1 = sizeof(commandOneArgs) / sizeof(commandOneArgs[0]) - 1,
-		length2 = sizeof(commandTwoArgs) / sizeof(commandTwoArgs[0]) - 1;
+    int length0 = sizeof(commandNoArgs) / sizeof(commandNoArgs[0]) - 1,
+        length1 = sizeof(commandOneArgs) / sizeof(commandOneArgs[0]) - 1,
+        length2 = sizeof(commandTwoArgs) / sizeof(commandTwoArgs[0]) - 1;
 
-	if (_stringArrayContains(commandNoArgs, length0, word))
-		return code0;
-	else if (_stringArrayContains(commandOneArgs, length1, word))
-		return code1;
-	else if (_stringArrayContains(commandTwoArgs, length2, word))
-		return code2;
-	return none;
+    if (_stringArrayContains(commandNoArgs, length0, word))
+        return code0;
+    else if (_stringArrayContains(commandOneArgs, length1, word))
+        return code1;
+    else if (_stringArrayContains(commandTwoArgs, length2, word))
+        return code2;
+    return none;
 }
 
 
@@ -81,38 +81,38 @@ Returns the given line instruction type.
 Input: String line.
 Output: code type, data type or NULL for comments and empty lines
 */
-enum lineType _findInstructionType(char line[]) 
+enum lineType _findInstructionType(char line[])
 {
-	char *tempLine;
+    char *tempLine, *word;
+    enum lineType codeType;
 
-	/* copy the line to a temp field to not edit org line and search for label */
-	tempLine = (char *) malloc(strlen(line)+1);
-	strcpy(tempLine, line);
+    /* copy the line to a temp field to not edit org line and search for label */
+    tempLine = (char *) malloc(strlen(line)+1);
+    strcpy(tempLine, line);
 
-	/* read the first word in the given line */
-	char *word = strtok(tempLine, " \t");
+    /* read the first word in the given line */
+    word = strtok(tempLine, " \t");
 
-	/* continue reading words until we figure out the sentance type or reach it's end */
-	while (word != NULL) {
-		if (_startsWith(word, COMMENT_SIGN)) {
-			free(tempLine);
-			return none;
-		}
-		else if (_isData(word)) {
-			free(tempLine);
-			return dataLine;
-		}
-		enum lineType codeType = _isCode(word);
-		if (codeType != none) {
-			free(tempLine);
-			return codeType;
-		}
-
-		/* read the next word in the given line */
+    /* continue reading words until we figure out the sentance type or reach it's end */
+    while (word != NULL) {
+        if (_startsWith(word, COMMENT_SIGN)) {
+            free(tempLine);
+            return none;
+        }
+        else if (_isData(word)) {
+            free(tempLine);
+            return dataLine;
+        }
+        codeType = _isCode(word);
+        if (codeType != none) {
+            free(tempLine);
+            return codeType;
+        }
+        /* read the next word in the given line */
         word = strtok(NULL, " \t");
     }
     free(tempLine);
-	return none;
+    return none;
 }
 
 
@@ -124,37 +124,41 @@ Symbol's method or it's value and type accordingly.
 Input: the new symbol info; name ,type (data or code), method (external, entry, relocatable) and it's value.
 Output: 0 if saved successfuly, 1 otherwise.
 */
-int *_saveSymbolToTable(char name[], enum SymbolType type, enum SymbolUpdateMethod method, int value) {
-	Symbol *alreadyExists;
+int _saveSymbolToTable(char name[], enum SymbolType type, enum SymbolUpdateMethod method, int value) {
+    Symbol *alreadyExists, *newItem;
 
-	alreadyExists = findInSymbolsTable(name); /* TODO: function to create in dataStructures.c */
+    alreadyExists = findInSymbolsTable(name);
 
-	/* new Symbol */
-	if (alreadyExists == NULL) {
-		Symbol newItem = {name, type, method, value};
+    /* new Symbol */
+    if (alreadyExists == NULL) {
+    	newItem = malloc(sizeof(Symbol));
+        newItem->name = strdup(name);
+        newItem->type = type;
+        newItem->method = method;
+        newItem->value = value;
+        newItem->next = NULL;
 
-		if (symbolTableHead == NULL) /* The first item in the table */
-			symbolTableHead = &newItem;
-		else 
-			symbolTableNext->next = &newItem;
-		symbolTableNext = &newItem
-		
-	}
-	else {
-		/* we already saved the symbol's value and type, now we update that it's .entry or .extern */
-		if ((method == entry || method == external) && alreadyExists->method == relocatable)
-			alreadyExists->method = method;
-		/* we already saved that the symbol is .entry or .extern, now we update the value and line type*/
-		else if (alreadyExists->method == entry || alreadyExists->method == external) {
-			alreadyExists->type = type;
-			alreadyExists->value = value;
-		}
-		else {
-			printf("error: symbol %s already exists in symbol table and cannot be defined again.", name);
-			return 1;
-		}
-	}
-	return 0;
+        if (symbolTableHead == NULL) /* The first item in the table */
+            symbolTableHead = &newItem;
+        else
+            symbolTableNext->next = &newItem;
+        symbolTableNext = &newItem;
+    }
+    else {
+        /* already saved the symbol's value and type, now update that it's .entry or .extern */
+        if ((method == entry || method == external) && alreadyExists->method == relocatable)
+            alreadyExists->method = method;
+        /* already saved that the symbol as .entry or .extern, now update the value and line type*/
+        else if (alreadyExists->method == entry || alreadyExists->method == external) {
+            alreadyExists->type = type;
+            alreadyExists->value = value;
+        }
+        else {
+            printf("error: symbol %s already exists in symbol table and cannot be defined again.", name);
+            return 1;
+        }
+    }
+    return 0;
 }
 
 
@@ -166,23 +170,23 @@ Output: String Label value if found one, NULL otherwise.
 */
 char *_findLabel(char line[])
 {
-	char *label, *tempLine;
+    char *label, *tempLine;
 
-	/* copy the line to a temp field to not edit org line and search for label */
-	tempLine = (char *) malloc(strlen(line)+1);
-	strcpy(tempLine, line);
-	label = strtok(tempLine, LABEL_SIGN);
-	free(tempLine);
+    /* copy the line to a temp field to not edit org line and search for label */
+    tempLine = (char *) malloc(strlen(line)+1);
+    strcpy(tempLine, line);
+    label = strtok(tempLine, LABEL_SIGN);
+    free(tempLine);
 
-	/* label was found, verify length limitation */
-	if (strcmp(label, line) != 0 && strlen(label) > MAX_LABEL_NAME_LEN) {
-		printf("error: label %s is passing the allowed %d characters limit.\n", label, MAX_LABEL_NAME_LEN);
-		exit(1);
-	}
-	/* valid label was found, return it */
-	if (strcmp(label, line) != 0) 
-		return label;
-	return NULL;
+    /* label was found, verify length limitation */
+    if (strcmp(label, line) != 0 && strlen(label) > MAX_LABEL_NAME_LEN) {
+        printf("error: label %s is passing the allowed %d characters limit.\n", label, MAX_LABEL_NAME_LEN);
+        exit(1);
+    }
+    /* valid label was found, return it */
+    if (strcmp(label, line) != 0)
+        return label;
+    return NULL;
 }
 
 
@@ -197,55 +201,55 @@ Output: 0 if successful, 1 otherwise.
 */
 int _handleDataLine(char line[])
 {
-	/* initializing variables */
-	int linesAmount = 0, 
-		value = -1,
-		commaCount = 1, 
-		isSuccessful;
-	char *tempLine, key[MAX_LABEL_NAME_LEN], currAction[7], *string, *ptr;
-	enum SymbolType type = data;
-	enum SymbolUpdateMethod method = relocatable;
+    /* initializing variables */
+    int value = -1,
+        commaCount = 1,
+        isSuccessful;
+    char key[MAX_LABEL_NAME_LEN], currAction[7], *string, *ptr;
+    enum SymbolType type = data;
+    enum SymbolUpdateMethod method = relocatable;
 
-	/* get needed variables from each action type */
-	if (_startsWith(line, ".define")) {
-		sscanf(s, ".define %s = %d", key, &value);
-		type = mdefine;
-	}
-	else if (_startsWith(line, ".entry")) {
-		sscanf(s, ".entry %s", key);
-		method = entry;
-	}
-	else if (_startsWith(line, ".extern")) {
-		sscanf(s, ".extern %s", key);
-		method = external;
-	}
-	else { 
-		/* initialize the symbol value */  
-		value  = currDecimalAddr;
+    /* get needed variables from each action type */
+    if (_startsWith(line, ".define")) {
+        sscanf(line, ".define %s = %d", key, &value);
+        type = mdefine;
+    }
+    else if (_startsWith(line, ".entry")) {
+        sscanf(line, ".entry %s", key);
+        method = entry;
+    }
+    else if (_startsWith(line, ".extern")) {
+        sscanf(line, ".extern %s", key);
+        method = external;
+    }
+    else {
+        /* initialize the symbol value */  
+        value  = currDecimalAddr;
 
-		/* check if .data or .string */  
-		sscanf(s, "%[^:]: .%s", key, currAction);
-		string = (char *) malloc(MAX_LINE_LEN-strlen(key)+1);
+        /* check if .data or .string */  
+        sscanf(line, "%[^:]: .%s", key, currAction);
+        string = (char *) malloc(MAX_LINE_LEN-strlen(key)+1);
 
-		/* get needed variables from each action type */
-		if (currAction == "string") {
-			sscanf(s, "%[^:]: .string \"%[^\"]\"", key, string);
-			currDecimalAddr += strlen(string);
-		}
-		else { /* currAction = data */ 
-			sscanf(s, "%[^:]: .data %[^\n]", key, string);
+        /* get needed variables from each action type */
+        if (strcmp(currAction, "string") == 0) {
+            sscanf(line, "%[^:]: .string \"%[^\"]\"", key, string);
+            currDecimalAddr += strlen(string);
+        }
+        else { /* currAction = data */
+            sscanf(line, "%[^:]: .data %[^\n]", key, string);
 
-			/* count the commas in the data params */
-			ptr = string;
-			while ((ptr = strchr(ptr, ',')) != NULL) {
-		        commaCount++;
-		        ptr++;
-		    }
-		    currDecimalAddr += commaCount;
-		}
-	}
-	isSuccessful = _saveSymbolToTable(key, type, method, value);
-	return isSuccessful
+            /* count the commas in the data params */
+            ptr = string;
+            while ((ptr = strchr(ptr, ',')) != NULL) {
+                commaCount++;
+                ptr++;
+            }
+            currDecimalAddr += commaCount;
+        }
+        free(string);
+    }
+    isSuccessful = _saveSymbolToTable(key, type, method, value);
+    return isSuccessful;
 }
 
 
@@ -259,128 +263,126 @@ Output: number of lines the command will take if successful, -1 if there was an 
 */
 int _verifyCommandArgs(char command[], int reqArgsAmount)
 {
-	int registryArgExists = 0,
-		currArgsCount = 0,
-		linesToAdd = 1;
-	char *currArg, *cmdName, *openSquare, *closeSquare;
-	int length = sizeof(registriesNames) / sizeof(registriesNames[0]) - 1;
+    int registryArgExists = 0,
+        currArgsCount = 0,
+        linesToAdd = 1;
+    char *currArg, cmdName[MAX_LINE_LEN], args[MAX_LINE_LEN], *openSquare, *closeSquare;
+    int length = sizeof(registriesNames) / sizeof(registriesNames[0]) - 1;
 
-	/* Skip the command */
-	cmdName = strtok(command, " \t");
-	command = strtok(NULL, " \t");
+    /* Skip the command */
+    sscanf(command, "%s %[^\n]", cmdName, args);
 
-	/* Split the args */
-	currArg = strtok(command, ",");
+    /* Split the args */
+    currArg = strtok(args, ", ");
 
-	while (currArg != NULL) {
-		currArgsCount += 1;
+    while (currArg != NULL) {
+        currArgsCount += 1;
 
-		/* check if it's registry argument */
-		if (_stringArrayContains(registriesNames, length, currArg) && !registryArgExists) {
-			registryArgExists = 1;
-			linesToAdd += 1;
-		}
-		else {
-			openSquare = strchr(currArg, '[');
-			closeSquare = strchr(currArg, ']');
+        /* check if it's registry argument */
+        if (_stringArrayContains(registriesNames, length, currArg) && !registryArgExists) {
+            registryArgExists = 1;
+            linesToAdd += 1;
+        }
+        else {
+            openSquare = strchr(currArg, '[');
+            closeSquare = strchr(currArg, ']');
 
-			/* check if it's a fixed index arg */
-			if (openSquare && closeSquare && openSquare > closeSquare) {
-				printf("error in line %d: command %s got invalid argument name %s.\n", currDecimalAddr, cmdName, currArg); 
-				return -1;
-			}
-			else if (openSquare && closeSquare && openSquare < closeSquare)
-				linesToAdd += 2;
-			else {
-				linesToAdd += 1;
-			}
-		}
-		/* Get the next arg */
-		currArg = strtok(NULL, ",");
-	}
+            /* check if it's a fixed index arg */
+            if (openSquare && closeSquare && openSquare > closeSquare) {
+                printf("error in line %d: command %s got invalid argument name %s.\n", currDecimalAddr, cmdName, currArg);
+                return -1;
+            }
+            else if (openSquare && closeSquare && openSquare < closeSquare)
+                linesToAdd += 2;
+            else {
+                linesToAdd += 1;
+            }
+        }
+        /* Get the next arg */
+        currArg = strtok(NULL, ",");
+    }
 
-	/* We got too many or not enough args */
-	if (currArgsCount != reqArgsAmount) {
-		printf("error in line %d: command %s got %d args but expected %d.\n", currDecimalAddr, cmdName, currArgsCount, reqArgsAmount); 
-		return -1;
-	}
-	return linesToAdd;
+    /* We got too many or not enough args */
+    if (currArgsCount != reqArgsAmount) {
+        printf("error in line %d: command %s got %d args but expected %d.\n", currDecimalAddr, cmdName, currArgsCount, reqArgsAmount);
+        return -1;
+    }
+    return linesToAdd;
 }
 
 
 /*
-Accepts a line which we know contain code. 
-Checks if it has a label that we should save, validates the command arguments amount and 
+Accepts a line which we know contain code.
+Checks if it has a label that we should save, validates the command arguments amount and
 updates the global decimal adress.
 
 Input: String line and the lineType which tells us the amount of args the command in it accepts.
 Output: 1 if there is an issue, 0 otherwise.
 */
-int _handleCodeLine(char line[], enum lineType type) 
+int _handleCodeLine(char line[], enum lineType type)
 {
-	int linesAmount, isSuccessful;
-	char *label, *tempLine;
+    int linesAmount, isSuccessful;
+    char *label, *tempLine;
 
-	/* copy the line to a temp field to not edit org line and search for label */
-	label = _findLabel(line);
-	tempLine = (char *) malloc(strlen(line)+1);
-	strcpy(tempLine, line);
-	strtok(tempLine, LABEL_SIGN);
+    /* copy the line to a temp field to not edit org line and search for label */
+    label = _findLabel(line);
+    tempLine = (char *) malloc(strlen(line)+1);
+    strcpy(tempLine, line);
+    strtok(tempLine, LABEL_SIGN);
 
-	/* valid label was found, save it */
-	if (label != NULL) {
-		isSuccessful = _saveSymbolToTable(label, code, relocatable, currDecimalAddr);
-		if (isSuccessful == 1) /* program failed */
-			return isSuccessful;
-		tempLine = strtok(NULL, LABEL_SIGN); /* tempLine currently holds the label too, move the next part of line to it */
-	}
+    /* valid label was found, save it */
+    if (label != NULL) {
+        isSuccessful = _saveSymbolToTable(label, code, relocatable, currDecimalAddr);
+        if (isSuccessful == 1) /* program failed */
+            return isSuccessful;
+        tempLine = strtok(NULL, LABEL_SIGN); /* tempLine currently holds the label too, move the next part of line to it */
+    }
 
-	/* update the decimal address and varify the command is valid */
-	if (type == code0)
-		linesAmount = _verifyCommandArgs(tempLine, 0);
-	else if (type == code1)
-		linesAmount = _verifyCommandArgs(tempLine, 1);
-	else /* type == code2 */
-		linesAmount = _verifyCommandArgs(tempLine, 2);
+    /* update the decimal address and varify the command is valid */
+    if (type == code0)
+        linesAmount = _verifyCommandArgs(tempLine, 0);
+    else if (type == code1)
+        linesAmount = _verifyCommandArgs(tempLine, 1);
+    else /* type == code2 */
+        linesAmount = _verifyCommandArgs(tempLine, 2);
 
-	if (linesAmount = -1) /* command invalid */
-	return 1;
+    if (linesAmount == -1) /* command invalid */
+        return 1;
 
-	currDecimalAddr += linesAmount;
-	return 0;
+    currDecimalAddr += linesAmount;
+    return 0;
 }
 
 
-int firstScan(char filename[]) 
+int firstScan(char filename[])
 {
-	/* intializing variables, open and create a pointer to the needed file */
-	int isSuccessful = 0;
-	char line [MAX];
-	FILE *file;
-    sprintf(filename, "%s%s", filename, READ_FILE_TYPE);
-    file = fopen(filename, "r");
+    /* intializing variables, open and create a pointer to the needed file */
+    int isSuccessful = 0;
+    char line [MAX_LINE_LEN], *fullFileName;
+    FILE *file;
+    enum lineType currLineType;
+    fullFileName = (char *) malloc(strlen(filename)+strlen(READ_FILE_TYPE)+1);
+    sprintf(fullFileName, "%s%s", filename, READ_FILE_TYPE);
+    file = fopen(fullFileName, "r");
 
     /* if failed to open the file, throws error */
     if (file == NULL) {
-    	printf("error: the file: %s can't open\n" , filename); 
-	    return 1;
+        printf("error: the file: %s can't open\n" , fullFileName);
+        return 1;
     }
 
     /* reading lines from the file */
     while (fgets(line, MAX_LINE_LEN, file)) {
-    	/* finding if the line is code, data or line we should ignore (comment and empty lines) */
-    	enum lineType lineType = _findInstructionType(line);
+        /* finding if the line is code, data or line we should ignore (comment and empty lines) */
+        currLineType = _findInstructionType(line);
 
-	    if (lineType == code0 || lineType == code1 || lineType == code2) {
-	        isSuccessful = _handleCodeLine(line, lineType);
-	        if (isSuccessful == 1)  /* program failed */
-	        	return isSuccessful;
-	    }
-	    else if (lineType == dataLine) {
-	        isSuccessful = _handleDataLine(line);
-	        if (isSuccessful == 1)  /* program failed */
-	        	return isSuccessful;
-	    }
+        if (currLineType == code0 || currLineType == code1 || currLineType == code2)
+            isSuccessful = _handleCodeLine(line, currLineType);
+        else if (currLineType == dataLine)
+            isSuccessful = _handleDataLine(line);
+           
+        if (isSuccessful == 1)  /* program failed */
+            return isSuccessful;
     }
     fclose(file);
     return isSuccessful;

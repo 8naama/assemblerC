@@ -1,11 +1,12 @@
-#include <<stdio.h>>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 
 #define READ_FILE_TYPE ".am"
-#define MAX_LINE_LEN 100  // TODO: MAKE SINGLE FILE FOR GENERAL VARS USED ACROSS THE PROGRAM
-#define COMMENT_SIGN ';'
-#define LABEL_SIGN ':'
+#define MAX_LINE_LEN 100  /* TODO: MAKE SINGLE FILE FOR GENERAL VARS USED ACROSS THE PROGRAM */
+#define COMMENT_SIGN ";"
+#define LABEL_SIGN ":"
 
 
 enum lineType {

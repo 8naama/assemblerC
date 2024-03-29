@@ -228,8 +228,8 @@ int _handleDataLine(char line[])
 
         /* get needed variables from each action type */
         if (strcmp(currAction, "string") == 0) {
-            sscanf(line, "%[^:]: .string \"%[^\"]\"", key, string);
-            currDecimalAddr += strlen(string);
+            sscanf(line, "%[^:]: .string %*[\"“]%[^\"“]%*[\"”]", key, string);
+            currDecimalAddr += strlen(string) + 1;  /* +1 for '\0' */
         }
         else { /* currAction = data */
             sscanf(line, "%[^:]: .data %[^\n]", key, string);

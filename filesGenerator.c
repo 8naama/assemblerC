@@ -55,7 +55,6 @@ void generateEntryFile(char filename[])
     char entryFileName[strlen(filename)+strlen(ENTRY_FILE_TYPE)+1],
          newline[MAX_LABEL_NAME_LEN+5];
     sprintf(entryFileName, "%s%s", filename, ENTRY_FILE_TYPE);
-    _writeToFile(entryFileName, newline);
 
     /* Going over all the Symbols */
     while (currSymbol) {

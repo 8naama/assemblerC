@@ -163,10 +163,6 @@ int _saveSymbolToTable(char name[], enum SymbolType type, enum SymbolUpdateMetho
         else if (alreadyExists->method == entry || alreadyExists->method == external) {
             alreadyExists->type = type;
             alreadyExists->value = value;
-
-            /* if external Symbol >> write to the external file with the current decimal address */
-            if (alreadyExists->method == external)
-                writeToExternalFile("naamaTestForNow", name, currDecimalAddr);
         }
         else {
             printf("error: symbol %s already exists in symbol table and cannot be defined again.", name);
@@ -380,8 +376,7 @@ Commiting the first scan which is responsible on:
 3. Writes header to the Object file, containing:
    - the length of the instructions section
    - the length of the data section
-4. Generates the External file
-5. Generates the Entry file
+4. Generates the Entry file
 */
 int firstScan(char filename[])
 {

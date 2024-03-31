@@ -1,7 +1,10 @@
+#include "dataStructures.h"
+#include "firstScan.h"
+#include "filesGenerator.h"
+
+
 #define EXPECTED_FILE_EXTENSION ".as"
 
-
-int firstScan(char filename[]);
 
 /*
 This main function is temporary for test purpose.
@@ -12,5 +15,8 @@ int main()
     /* call macro() here to create the .am file */
 
     succesful_scan = firstScan("test");
+
+    printSymbols();
+
     return succesful_scan;
 }

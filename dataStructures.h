@@ -35,3 +35,4 @@ typedef struct MemoryData {
 struct Symbol *symbolTableHead;
 
 Symbol *findInSymbolsTable(char name[]);
+void printSymbols(); /* test func - to remove in final version */

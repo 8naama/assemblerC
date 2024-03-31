@@ -18,3 +18,13 @@ Symbol *findInSymbolsTable(char name[])
     }
     return NULL;
 }
+
+/* test function: to be removed in the final version */
+void printSymbols() {
+	Symbol *curr = symbolTableHead;
+
+    while (curr) {
+        printf("row in symbols table; %s : %d\n", curr->name, curr->value);
+        curr = curr->next;
+    }
+}

@@ -49,16 +49,26 @@ int _stringArrayContains(char *arr[], int arrLen, char word[])
 }
 
 
+int _lineContainsOneOf(char *arr[], int arrLen, char line[])
+{
+    int i;
+    for (i=0; i <= arrLen; i++) {
+        if (strstr(line, arr[i]))
+            return 1;
+    }
+    return 0;
+}
+
 /*
 Returns if the given word is in the definitionAndDirective array.
 
 Input: string word.
 Output: 1 if the word means the line is data line, 0 otherwise
 */
-int _isData(char word[])
+int _isData(char line[])
 {
     int length = sizeof(definitionAndDirective) / sizeof(definitionAndDirective[0]) - 1;
-    return _stringArrayContains(definitionAndDirective, length, word);
+    return _lineContainsOneOf(definitionAndDirective, length, line);
 }
 
 
@@ -71,17 +81,17 @@ Returns if the given word is a known code word and it's type:
 Input: string word.
 Output: code type if the word is code, NULL otherwise
 */
-enum lineType _isCode(char word[])
+enum lineType _isCode(char line[])
 {
     int length0 = sizeof(commandNoArgs) / sizeof(commandNoArgs[0]) - 1,
         length1 = sizeof(commandOneArgs) / sizeof(commandOneArgs[0]) - 1,
         length2 = sizeof(commandTwoArgs) / sizeof(commandTwoArgs[0]) - 1;
 
-    if (_stringArrayContains(commandNoArgs, length0, word))
+    if (_lineContainsOneOf(commandNoArgs, length0, line))
         return code0;
-    else if (_stringArrayContains(commandOneArgs, length1, word))
+    else if (_lineContainsOneOf(commandOneArgs, length1, line))
         return code1;
-    else if (_stringArrayContains(commandTwoArgs, length2, word))
+    else if (_lineContainsOneOf(commandTwoArgs, length2, line))
         return code2;
     return none;
 }
@@ -95,31 +105,14 @@ Output: code type, data type or NULL for comments and empty lines
 */
 enum lineType _findInstructionType(char line[])
 {
-    char *tempLine, *word;
     enum lineType codeType;
 
-    /* copy the line to a temp field to not edit org line and search for label */
-    tempLine = (char *) malloc(strlen(line)+1);
-    strcpy(tempLine, line);
-
-    /* read the first word in the given line */
-    word = strtok(tempLine, " \t");
-    free(tempLine);
-
-    /* continue reading words until we figure out the sentance type or reach it's end */
-    while (word) {
-        if (_startsWith(word, COMMENT_SIGN))
-            return none;
-        else if (_isData(word))
-            return dataLine;
-
-        codeType = _isCode(word);
-        if (codeType != none)
-            return codeType;
-
-        /* read the next word in the given line */
-        word = strtok(NULL, " \t");
-    }
+    if (_startsWith(line, COMMENT_SIGN))
+        return none;
+    else if (_isData(line))
+        return dataLine;
+    codeType = _isCode(line);
+        return codeType;
     return none;
 }
 
@@ -139,18 +132,28 @@ int _saveSymbolToTable(char name[], enum SymbolType type, enum SymbolUpdateMetho
 
     /* new Symbol */
     if (!alreadyExists) {
-    newItem = (Symbol*) malloc(sizeof(Symbol));
+
+        if (!symbolTableHead) {  /* The first item in the table */
+            symbolTableHead = (struct Symbol *)malloc(sizeof(enum SymbolUpdateMethod) * sizeof(enum SymbolType) * sizeof(struct Symbol));
+            strcpy(symbolTableHead->name, name);
+            symbolTableHead->type = type;
+            symbolTableHead->method = method;
+            symbolTableHead->value = value;
+            symbolTableHead->next = NULL;
+            
+            symbolTableNext = symbolTableHead;
+        }
+        else {
+        newItem = (Symbol*) malloc(sizeof(Symbol));
         strcpy(newItem->name, name);
         newItem->type = type;
         newItem->method = method;
         newItem->value = value;
         newItem->next = NULL;
 
-        if (!symbolTableHead) /* The first item in the table */
-            symbolTableHead = newItem;
-        else
-            symbolTableNext->next = newItem;
+        symbolTableNext->next = newItem;
         symbolTableNext = newItem;
+}
     }
     else {
         /* already saved the symbol's value and type, now update that it's .entry or .extern */
@@ -160,6 +163,10 @@ int _saveSymbolToTable(char name[], enum SymbolType type, enum SymbolUpdateMetho
         else if (alreadyExists->method == entry || alreadyExists->method == external) {
             alreadyExists->type = type;
             alreadyExists->value = value;
+
+            /* if external Symbol >> write to the external file with the current decimal address */
+            if (alreadyExists->method == external)
+                writeToExternalFile("naamaTestForNow", name, currDecimalAddr);
         }
         else {
             printf("error: symbol %s already exists in symbol table and cannot be defined again.", name);
@@ -184,7 +191,6 @@ char *_findLabel(char line[])
     tempLine = (char *) malloc(strlen(line)+1);
     strcpy(tempLine, line);
     label = strtok(tempLine, LABEL_SIGN);
-    free(tempLine);
 
     /* label was found, verify length limitation */
     if (strcmp(label, line) != 0 && strlen(label) > MAX_LABEL_NAME_LEN) {
@@ -192,8 +198,8 @@ char *_findLabel(char line[])
         exit(1);
     }
     /* valid label was found, return it */
-    if (strcmp(label, line) != 0)
-        return label;
+    if (strcmp(label, line) != 0) {
+        return label; printf("TEST: %s\n", label);}
     return NULL;
 }
 
@@ -207,7 +213,7 @@ Recieves a line that contains a known action from definitionAndDirective:
 Input: String line
 Output: 0 if successful, 1 otherwise.
 */
-int _handleDataLine(char filename[], char line[])
+int _handleDataLine(char line[])
 {
     /* initializing variables */
     int value = -1,
@@ -229,9 +235,6 @@ int _handleDataLine(char filename[], char line[])
     else if (_startsWith(line, ".extern")) {
         sscanf(line, ".extern %s", key);
         method = external;
-        
-        /* writing the external Symbol to the external file with the current decimal address */
-        writeToExternalFile(filename, key, currDecimalAddr);
     }
     else {
         /* initialize the symbol value */  
@@ -292,9 +295,11 @@ int _verifyCommandArgs(char command[], int reqArgsAmount)
         currArgsCount += 1;
 
         /* check if it's registry argument */
-        if (_stringArrayContains(registriesNames, length, currArg) && !registryArgExists) {
-            registryArgExists = 1;
-            linesToAdd += 1;
+        if (_stringArrayContains(registriesNames, length, currArg)) {
+            if (!registryArgExists) {
+                registryArgExists = 1;
+                linesToAdd += 1;
+            }
         }
         else {
             openSquare = strchr(currArg, '[');
@@ -312,7 +317,7 @@ int _verifyCommandArgs(char command[], int reqArgsAmount)
             }
         }
         /* Get the next arg */
-        currArg = strtok(NULL, ",");
+        currArg = strtok(NULL, ", ");
     }
 
     /* We got too many or not enough args */
@@ -403,7 +408,7 @@ int firstScan(char filename[])
         if (currLineType == code0 || currLineType == code1 || currLineType == code2)
             isSuccessful = _handleCodeLine(line, currLineType);
         else if (currLineType == dataLine)
-            isSuccessful = _handleDataLine(filename, line);
+            isSuccessful = _handleDataLine(line);
            
         if (isSuccessful == 1)  /* program failed */
             return isSuccessful;

@@ -21,10 +21,25 @@ Symbol *findInSymbolsTable(char name[])
 
 /* test function: to be removed in the final version */
 void printSymbols() {
-	Symbol *curr = symbolTableHead;
+    Symbol *curr = symbolTableHead;
+        char method[20] = "", type[10] = "";
 
     while (curr) {
-        printf("row in symbols table; %s : %d\n", curr->name, curr->value);
+        if (curr->method == external)
+            strcpy(method, "external");
+        else if (curr->method == entry)
+            strcpy(method, "entry");
+        else
+            strcpy(method, "relocatable");
+
+        if (curr->type == code)
+            strcpy(type, "code");
+        else if (curr->type == data)
+            strcpy(type, "data");
+        else
+            strcpy(type, "mdefine");
+
+        printf("row; %s | %d | %s | %s\n", curr->name, curr->value, method, type);
         curr = curr->next;
     }
 }

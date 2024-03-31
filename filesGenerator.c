@@ -16,6 +16,13 @@ Output: None
 void _writeToFile(char filename[], char newline[]) 
 {
     currFile = fopen(filename, "a");
+
+    /* if failed to open the file, throws error */
+    if (!currFile) {
+        printf("error: failed to open file %s\n" , filename);
+        return;
+    }
+    
     fprintf(currFile, "%s\n", newline);
     fclose(currFile);
 }
@@ -35,6 +42,12 @@ void writeToObjectFile(char filename[], char newline[])
 }
 
 
+/*
+Writes the given line to the given filename as .EXTERNAL_FILE_TYPE file.
+
+Input: filename of the file, key of the external var and the line it was called at
+Output: None
+*/
 void writeToExternalFile(char filename[], char key[], int lineNumber)
 {
     char externalFileName[strlen(filename)+strlen(EXTERNAL_FILE_TYPE)+1], 
@@ -45,67 +58,31 @@ void writeToExternalFile(char filename[], char key[], int lineNumber)
     _writeToFile(externalFileName, newline);
 }
 
+/*
+Generates the .ENTRY_FILE_TYPE file based on the Symbols table.
 
+Input: filename of the file
+Output: None
+*/
 void generateEntryFile(char filename[])
 {
     /* Initializing file name and the current Symbol */
-    enum SymbolUpdateMethod currMethod;
     Symbol *currSymbol = symbolTableHead, 
            *tmp;
     char entryFileName[strlen(filename)+strlen(ENTRY_FILE_TYPE)+1],
-         newline[MAX_LABEL_NAME_LEN+5];
+         newline[MAX_LABEL_NAME_LEN+6];
     sprintf(entryFileName, "%s%s", filename, ENTRY_FILE_TYPE);
 
     /* Going over all the Symbols */
     while (currSymbol) {
-        currMethod = currSymbol->method;
-    
-        char newline[MAX_LABEL_NAME_LEN+6];
+
+
         /* If entry, then save to the entry file */
-        if (currMethod == entry) {
+        if (currSymbol->method == entry) {
             sprintf(newline, "%s\t%d", currSymbol->name, currSymbol->value);
             _writeToFile(entryFileName, newline);
         }
-
         tmp = currSymbol->next;
-        currSymbol = tmp;
-    }
-}
-
-
-/*
-Genrates EXTERNAL_FILE_TYPE and ENTRY_FILE_TYPE based on the given Symbol structure.
-If there are no symbols with entry as method, does not generate the relevant file.
-Same behaviour happens for external method.
-
-Input: filename of the new files, Symbol structure
-Output: None
-*/
-void _generateEntryAndExternalFiles(char filename[], struct Symbol *symbolsHead)
-{
-    /* Initializing file names and the current Symbol */
-    char entryFileName[100];
-    char externalFileName[100];
-    Symbol *currSymbol = symbolsHead;
-    Symbol *tmp;
-    sprintf(entryFileName, "%s%s", filename, ENTRY_FILE_TYPE);
-    sprintf(externalFileName, "%s%s", filename, EXTERNAL_FILE_TYPE);
-
-    /* Going over all the Symbols */
-    while (currSymbol) {
-        enum SymbolUpdateMethod currMethod = currSymbol->method;
-        
-        char newline[MAX_LABEL_NAME_LEN+6];
-        sprintf(newline, "%s\t%d", currSymbol->name, currSymbol->value);
-        
-        /* If external or entry, then save to the relevant file */
-        if (currMethod == entry)
-            _writeToFile(entryFileName, newline);
-        else if (currMethod == external)
-            _writeToFile(externalFileName, newline);
-
-        tmp = currSymbol->next;
-        /*free(currSymbol);*/ /* Uncomment this in final run, when the data structures are taking up memory */
         currSymbol = tmp;
     }
 }
@@ -150,7 +127,7 @@ Add to the OBJECT_FILE_TYPE file the encoded words from binaryWordHead lines enc
 Input: filename of the new file, instCount (number of instructions), dataCount (number of data lines) and MemoryData structure.
 Output: None
 */
-void _generateObjectFile(char filename[], int instCount, int dataCount, struct MemoryData *binaryWordHead) 
+void generateObjectFile(char filename[], int instCount, int dataCount, struct MemoryData *binaryWordHead) 
 {
     /* Initializing file names and the current Symbol */
     char objectFileName[100];
@@ -163,25 +140,10 @@ void _generateObjectFile(char filename[], int instCount, int dataCount, struct M
         char newline[50];
 
         snprintf(newline, 50, "%d\t%s", currLine->decimalAddress, _encodeWord(currLine->binary));
-        printf("%s\n", newline);
         _writeToFile(objectFileName, newline);
 
         tmp = currLine->next;
         /*free(currLine);*/ /* Uncomment this in final run, when the data structures are taking up memory */
         currLine = tmp;
     }
-}
-
-
-/*
-Generates files named after the given 'filename', with file types matching ENTRY_FILE_TYPE, EXTERNAL_FILE_TYPE and OBJECT_FILE_TYPE.
-The files content depends on the given 'symbols_head' and 'binary_word_head' structures content.
-
-Input: string filename, Symbol structure, instructions lines count, data lines count and MemoryData structure.
-Output: None, but generates between 1 to 3 files, depending on the given structures content.
-*/
-void generateFiles(char filename[], struct Symbol *symbolsHead, int instCount, int dataCount, struct MemoryData *binaryWordHead)
-{
-    _generateEntryAndExternalFiles(filename, symbolsHead);
-    _generateObjectFile(filename, instCount, dataCount, binaryWordHead);
 }

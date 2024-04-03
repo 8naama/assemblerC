@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
         if (succesful_scan == 0)
             printf("call second scan\n");
             /* call second scan here */
-            /* EXAMPLE HOW TO USE OBJECT FILE GENERATOR IN 2nd SCAN: generateObjectFile("object", 100, "00000000111000"); */
+            /* EXAMPLE HOW TO USE OBJECT FILE GENERATOR IN 2nd SCAN: generateObjectFile("FILE_NAME_WITHOUT_EXTENTION", 100, "00000000111000"); */
     }
 
     return succesful_scan;

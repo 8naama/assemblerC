@@ -142,6 +142,12 @@ int isMacroCommand(char line[], FILE *fpw,struct Macro *mTail)
 }
 
 
+/*
+Checks if the given line is macro or not and returns mFlag accordingly.
+
+Input: output file pointer, Macro table tail and String line
+Output: -1 if the line should be ignored, 1 if it's a macro call, 0 otherwise (regular line).
+*/
 int checkLine(FILE *fpw, struct Macro *tail, char *line) {
 	static int mFlag;
 	int isMacroRelated;
@@ -171,6 +177,12 @@ int checkLine(FILE *fpw, struct Macro *tail, char *line) {
 }
 
 
+/*
+Writes lines from given inputFilename to outputFilename based on the checkLine() function result.
+
+Input: String inputFilename and outputFilename, and a pointer to the macro table
+Output: none
+*/
 void writeFile(char inputFilename[], char outputFilename[], struct Macro *tail) {
 	FILE *fpr, *fpw;
     char line[MAX_LINE_LEN];
@@ -187,8 +199,9 @@ void writeFile(char inputFilename[], char outputFilename[], struct Macro *tail) 
 	while (fgets(line, MAX_LINE_LEN, fpr)) {
         mflag = checkLine(fpw, tail, line);
 
+        /* got line that should be written to the outputFilename */
         if (mflag == 0)
-        	fprintf(fpw, "%s", line);            
+        	fprintf(fpw, "%s", line);
     }
 
     fclose(fpw);
@@ -196,6 +209,10 @@ void writeFile(char inputFilename[], char outputFilename[], struct Macro *tail) 
 }
 
 
+/*
+Commiting the macro spreading scan which finds all the macros in the file, replaces them and writes the 
+new content to OUTPUT_FILE_TYPE file that is defined in macro.h
+*/
 void spreadMacros(char filename[]) {
 	int flag;
 	char *readfilename, *writefilename;

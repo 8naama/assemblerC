@@ -397,7 +397,7 @@ int firstScan(char filename[])
 
     /* if failed to open the file, throws error */
     if (!file) {
-        printf("Error: the file: %s can't open\n" , fullFileName);
+        printf("Error: failed to open file %s\n" , fullFileName);
         return 1;
     }
 

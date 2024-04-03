@@ -164,7 +164,6 @@ int _checkLine(FILE *fpw, struct Macro *tail, char *line) {
         mFlag = -1;
     }
     /* start of macro */
-
     else if (isMacroRelated == 1)
     	mFlag = -1;
     /* known macro call */

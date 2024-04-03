@@ -1,11 +1,18 @@
 #include "macro.h"
+#include "global.h"
 
 
-int isMacro(char line[]) /*Checks whether it is the beginning of a macro or the end of a macro*/
+/*
+Checks whether it is the beginning of a macro or the end of a macro
+
+Input: String line
+Output: 1 if start of a macro, -1 if end of macro, 0 otherwise
+*/
+int isMacroDefinition(char line[])
 {
 	int index = 0 , mIndex = 0 ;
-	char mcr [MAX];
-	memset(mcr , '\0' , MAX);
+	char mcr [MAX_LINE_LEN];
+	memset(mcr , '\0' , MAX_LINE_LEN);
 	while(isspace(line[index]))
 	       index ++;
 	while (line[index] != '\n' && !isspace(line[index]))
@@ -20,73 +27,100 @@ int isMacro(char line[]) /*Checks whether it is the beginning of a macro or the 
 	    	return -1;
 	return 0;
 }
-void insertName(struct Macro *pMcr, char line[]) /*Enter the macro name in the macros table*/
+
+
+/*
+Enter the macro name in the macros table
+
+Input: Pointer to a Macro struct and String line
+Output: none
+*/
+void insertMacroNameToTable(struct Macro *pMcr, char line[])
 {
-	int index = 0 , nIndex = 0 ;
-	char mName [MAX];
-	memset(mName , '\0' , MAX);
-	while(isspace(line[index]))
-		index ++;
-	 /* while (line[index] != '\n' && !isspace(line[index]))
-	   	index++;
-	  while(isspace(line[index]))
-	  	index ++;*/
-	 while (line[index] != '\n' && !isspace(line[index]))
-	 {
-	    	mName[nIndex] = line[index];
-	    	nIndex++;
-	    	index++;
-	 }
-	 strcpy(pMcr->name,mName);
+	char mName[MAX_LINE_LEN];
+
+	sscanf(line, "mcr %s\n", mName);
+	strcpy(pMcr->name,mName);
 }
-void insertContent(struct Macro *pMcr, FILE *fp) /*Inserts the macro contents into the macros table*/
+
+
+
+/*
+Inserts the macro contents into the macros table
+
+Input: Pointer to a Macro struct and a file pointer
+Output: none
+*/
+void insertMacroContentToTable(struct Macro *pMcr, FILE *fp)
 {
-	char line [MAX];
-	char mContent [MAX];
-	memset(line , '\0' , MAX);
-	memset(mContent , '\0' , MAX);
-	fgets(line, MAX, fp);
-	while(isMacro(line) != -1)
+	char line [MAX_LINE_LEN];
+	char mContent [MAX_LINE_LEN];
+	memset(line , '\0' , MAX_LINE_LEN);
+	memset(mContent , '\0' , MAX_LINE_LEN);
+	fgets(line, MAX_LINE_LEN, fp);
+	while(isMacroDefinition(line) != -1)
 	{
-		strncat(mContent, line , MAX);   
-	    	fgets(line, MAX, fp);
+		strncat(mContent, line , MAX_LINE_LEN);   
+	    fgets(line, MAX_LINE_LEN, fp);
 	}
 	strcpy(pMcr->content,mContent);
 }
-int readFile(int i, char *argv[],struct Macro *mHead) /*Performing the first pass on the file (inserting the macros into the macro table,
-                                                        copying the corresponding rows from the table to the file, etc.)*/
+
+
+
+/*
+Performing the first pass on the file (inserting the macros into the macro table,
+copying the corresponding rows from the table to the file, etc.)
+
+Input: filename and pointer to the Macro table head
+Output: 1 if failed, 0 if suceeded
+*/
+int readFile(char filename[] ,struct Macro *mHead)
 {
-	char line [MAX];
+	char line [MAX_LINE_LEN];
 	FILE *fpr;
-	memset(line , '\0' , MAX);
-	fpr = fopen(argv[i],"r");
+	memset(line , '\0' , MAX_LINE_LEN);
+	fpr = fopen(filename,"r");
+
 	if(fpr == NULL)
 	{
-		printf("error: the file: %s cant open\n \n" , argv[i]);  
+		printf("Error: failed to open file: %s\n" , filename);  
 	     	return 1;
 	}
-	while(fgets(line, MAX, fpr))
+
+	while(fgets(line, MAX_LINE_LEN, fpr))
 	{
 		struct  Macro* temp = NULL;
-		temp = (struct Macro*)malloc(sizeof(struct Macro)); 
-		if(isMacro(line) == 1)
+		temp = (struct Macro*)malloc(sizeof(struct Macro));
+
+		/* start of macro */
+		if(isMacroDefinition(line) == 1)
 		{ 
-			insertName(temp , line);
-			insertContent(temp , fpr);
+			insertMacroNameToTable(temp , line);
+			insertMacroContentToTable(temp , fpr);
 			mHead -> next = temp ;
 			mHead = temp;
 		}
 	}
 	 return 0;
 }
-int isMacroCommand(char line[], FILE *fpw,struct Macro *mTail) /*Copy the contents of the corresponding macro to the file from the table, if it is a macro command*/
+
+
+/*
+Copy the contents of the corresponding macro to the file from the table, if it is a macro command
+
+Input: string line, file pointer and Macro table head tail
+Output: 1 if given line is a macro command, 0 otherwise
+*/
+int isMacroCommand(char line[], FILE *fpw,struct Macro *mTail)
 {
 	int index = 0, mIndex = 0;
-	char mName [MAX];
+	char mName [MAX_LINE_LEN];
 	struct  Macro *temp = NULL;
 	temp = (struct Macro*)malloc(sizeof(struct Macro));
 	temp = mTail;
-	memset(mName, '\0' , MAX);
+	memset(mName, '\0' , MAX_LINE_LEN);
+
 	while(isspace(line[index]))
 		index ++;
 	while (!isspace(line[index]) && line[index] != '\n')
@@ -108,118 +142,96 @@ int isMacroCommand(char line[], FILE *fpw,struct Macro *mTail) /*Copy the conten
 }
 
 
-void checkLine(FILE *fpw, struct Macro *tail, char *line) {
-	static int mFlag = 0;
+/*
+Checks if the given line is macro or not and returns mFlag accordingly.
 
-	if (!mFlag)
-	{
-		if (!isMacroCommand(line, fpw, tail))
-		{
-			if (isMacro(line) == 0)
-			{
-		        	fprintf(fpw, "%s", line);
-		    	}
-			else
-			{
-		        	mFlag = 1;
-		    	}
-		}
-	}
-	else
-	{
-		if (isMacro(line) == -1)
-			mFlag = 0;
-	}
-}
-
-void writeFile(int i, char *argv[], struct Macro *tail) {
-	FILE *fpr, *fpw;
-    	char line[MAX];
-    	char fName1[MAX], fName2[MAX];
-
-    	memset(line, '\0', MAX);
-
-    	strcpy(fName1, argv[i]);
-    	strcpy(fName2, argv[i]);
-    	strncat(fName2, ".am", 3);
-
-    	fpr = fopen(fName1, "r");
-    	fpw = fopen(fName2, "w");
-
-    	if (fpr == NULL)
-	{
-        	printf("error: can't open the file: %s\n\n", argv[1]);
-        	
-	}
-
-	while (fgets(line, MAX, fpr))
-	{
-        	checkLine(fpw, tail, line);
-	}
-
-    	fclose(fpw);
-    	fclose(fpr);
-}
-/*void writeFile(int i, char *argv[],struct Macro *tail)
-{
-	  int mFlag = 0; 
-	  FILE *fpw;
-	  FILE *fpr;
-	  char line [MAX];
-	  char fName1[MAX];
-	  char fName2[MAX];
-	  memset(line , '\0' , MAX);
-	  strcpy(fName1,argv[i]);
-	  strcpy(fName2,argv[i]);
-	  strncat(fName2, ".am", 3);
-	  fpr = fopen(fName1,"r");
-	  fpw = fopen(fName2,  "w");
-	  if(fpr == NULL)
-	     printf("error: cant open the file: %s \n \n" , argv[1]); 
-	  while(fgets(line, MAX, fpr))
-	  {
-	    if(!mFlag)
-	    {   
-	       if(!isMacroCommand(line, fpw, tail))
-	       {
-		 if(isMacro(line) == 0)
-		 {
-		    fprintf(fpw,"%s",line);
-		 }
-		 else 
-		 {
-		    mFlag = 1;
-		 }
-	       }
-	    }
-	    else
-	    {
-	      if(isMacro(line) == -1)
-		mFlag = 0;
-	    }        
-	  } 
-	  fclose(fpw);
-	  fclose(fpr);
-}
+Input: output file pointer, Macro table tail and String line
+Output: -1 if the line should be ignored, 1 if it's a macro call, 0 otherwise (regular line).
 */
+int checkLine(FILE *fpw, struct Macro *tail, char *line) {
+	static int mFlag;
+	int isMacroRelated;
 
-/*void addMacro(struct Macro *mHead , char mName[] , char mContent[]) 
-	  struct  Macro *temp = NULL;
-	  temp = (struct Macro*)malloc(sizeof(struct Macro));
-	  memset(temp->name, '\0' , MAX);
-	  memset(temp->content , '\0' , MAX);
-	  strcpy(temp->name,name);
-	  strcpy(temp->content,content);
-	  mHead ->next = temp;
+	isMacroRelated = isMacroDefinition(line);
+
+	/* middle of macro definition >> ignore */
+	if (mFlag == -1) {
+		/* end of macro definition >> ignore this line but check the next */
+        if (isMacroRelated == -1) {
+        	++mFlag;
+        	return -1;
+        }
+        mFlag = -1;
+    }
+    /* start of macro */
+
+    else if (isMacroRelated == 1)
+    	mFlag = -1;
+    /* known macro call */
+    else if (isMacroCommand(line, fpw, tail) == 1) 
+    	mFlag = 1;
+    /* regular line */
+    else
+        mFlag = 0;
+	return mFlag;
 }
-void printMacrO(struct Macro *mTail)
-{
-	  struct  Macro *temp = NULL;
-	  temp = (struct Macro*)malloc(sizeof(struct Macro));
-	  temp = mTail-> next;
-	  while(temp != NULL)
-	  {
-	    printf("\n macro name:  %s \n  content:  %s \n", temp->mname , temp->mcontent);
-	    temp = temp-> next;
-	  }
-} */
+
+
+/*
+Writes lines from given inputFilename to outputFilename based on the checkLine() function result.
+
+Input: String inputFilename and outputFilename, and a pointer to the macro table
+Output: none
+*/
+void writeFile(char inputFilename[], char outputFilename[], struct Macro *tail) {
+	FILE *fpr, *fpw;
+    char line[MAX_LINE_LEN];
+    int mflag;
+
+    memset(line, '\0', MAX_LINE_LEN);
+
+    fpr = fopen(inputFilename, "r");
+    fpw = fopen(outputFilename, "w");
+
+    if (fpr == NULL)
+	    printf("Error: failed to open file: %s\n", inputFilename);
+
+	while (fgets(line, MAX_LINE_LEN, fpr)) {
+        mflag = checkLine(fpw, tail, line);
+
+        /* got line that should be written to the outputFilename */
+        if (mflag == 0)
+        	fprintf(fpw, "%s", line);
+    }
+
+    fclose(fpw);
+    fclose(fpr);
+}
+
+
+/*
+Commiting the macro spreading scan which finds all the macros in the file, replaces them and writes the 
+new content to OUTPUT_FILE_TYPE file that is defined in macro.h
+*/
+void spreadMacros(char filename[]) {
+	int flag;
+	char *readfilename, *writefilename;
+	struct Macro *mTail = NULL;
+	struct Macro *mHead = NULL;
+
+	readfilename = (char *) malloc(strlen(filename)+4);
+	writefilename = (char *) malloc(strlen(filename)+4);
+	sprintf(readfilename, "%s%s", filename, INPUT_FILE_TYPE);
+	sprintf(writefilename, "%s%s", filename, OUTPUT_FILE_TYPE);
+
+	mHead = (struct Macro*)malloc(sizeof(struct Macro));
+	mTail = (struct Macro*)malloc(sizeof(struct Macro));
+	mTail = mHead;
+
+	flag = readFile(readfilename, mHead);
+	if (!flag) {
+		writeFile(readfilename, writefilename, mTail);
+	}
+	free(readfilename);
+	free(writefilename);
+}

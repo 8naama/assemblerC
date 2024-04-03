@@ -19,7 +19,7 @@ void _writeToFile(char filename[], char newline[])
 
     /* if failed to open the file, throws error */
     if (!currFile) {
-        printf("error: failed to open file %s\n" , filename);
+        printf("Error: failed to open file %s\n" , filename);
         return;
     }
     

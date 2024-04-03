@@ -49,6 +49,12 @@ int _stringArrayContains(char *arr[], int arrLen, char word[])
 }
 
 
+/*
+Returns if the given line contains a word from the given array.
+
+Input: Array of strings, it's length and a string line.
+Output: 1 if the line contains a word from the array, 0 otherwise
+*/
 int _lineContainsOneOf(char *arr[], int arrLen, char line[])
 {
     int i;
@@ -165,7 +171,7 @@ int _saveSymbolToTable(char name[], enum SymbolType type, enum SymbolUpdateMetho
             alreadyExists->value = value;
         }
         else {
-            printf("error: symbol %s already exists in symbol table and cannot be defined again.", name);
+            printf("Error: symbol %s already exists in symbol table and cannot be defined again.", name);
             return 1;
         }
     }
@@ -190,12 +196,12 @@ char *_findLabel(char line[])
 
     /* label was found, verify length limitation */
     if (strcmp(label, line) != 0 && strlen(label) > MAX_LABEL_NAME_LEN) {
-        printf("error: label %s is passing the allowed %d characters limit.\n", label, MAX_LABEL_NAME_LEN);
+        printf("Error: label %s is passing the allowed %d characters limit.\n", label, MAX_LABEL_NAME_LEN);
         exit(1);
     }
     /* valid label was found, return it */
-    if (strcmp(label, line) != 0) {
-        return label; printf("TEST: %s\n", label);}
+    if (strcmp(label, line) != 0)
+        return label;
     return NULL;
 }
 
@@ -303,7 +309,7 @@ int _verifyCommandArgs(char command[], int reqArgsAmount)
 
             /* check if it's a fixed index arg */
             if (openSquare && closeSquare && openSquare > closeSquare) {
-                printf("error in line %d: command %s got invalid argument name %s.\n", currDecimalAddr, cmdName, currArg);
+                printf("Error in line %d: command %s got invalid argument name %s.\n", currDecimalAddr, cmdName, currArg);
                 return -1;
             }
             else if (openSquare && closeSquare && openSquare < closeSquare)
@@ -318,7 +324,7 @@ int _verifyCommandArgs(char command[], int reqArgsAmount)
 
     /* We got too many or not enough args */
     if (currArgsCount != reqArgsAmount) {
-        printf("error in line %d: command %s got %d args but expected %d.\n", currDecimalAddr, cmdName, currArgsCount, reqArgsAmount);
+        printf("Error in line %d: command %s got %d args but expected %d.\n", currDecimalAddr, cmdName, currArgsCount, reqArgsAmount);
         return -1;
     }
     return linesToAdd;
@@ -391,7 +397,7 @@ int firstScan(char filename[])
 
     /* if failed to open the file, throws error */
     if (!file) {
-        printf("error: the file: %s can't open\n" , fullFileName);
+        printf("Error: failed to open file %s\n" , fullFileName);
         return 1;
     }
 

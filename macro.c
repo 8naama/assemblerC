@@ -8,7 +8,7 @@ Checks whether it is the beginning of a macro or the end of a macro
 Input: String line
 Output: 1 if start of a macro, -1 if end of macro, 0 otherwise
 */
-int isMacroDefinition(char line[])
+int _isMacroDefinition(char line[])
 {
 	int index = 0 , mIndex = 0 ;
 	char mcr [MAX_LINE_LEN];
@@ -35,7 +35,7 @@ Enter the macro name in the macros table
 Input: Pointer to a Macro struct and String line
 Output: none
 */
-void insertMacroNameToTable(struct Macro *pMcr, char line[])
+void _insertMacroNameToTable(struct Macro *pMcr, char line[])
 {
 	char mName[MAX_LINE_LEN];
 
@@ -51,7 +51,7 @@ Inserts the macro contents into the macros table
 Input: Pointer to a Macro struct and a file pointer
 Output: none
 */
-void insertMacroContentToTable(struct Macro *pMcr, FILE *fp)
+void _insertMacroContentToTable(struct Macro *pMcr, FILE *fp)
 {
 	char line [MAX_LINE_LEN];
 	char mContent [MAX_LINE_LEN];
@@ -75,7 +75,7 @@ copying the corresponding rows from the table to the file, etc.)
 Input: filename and pointer to the Macro table head
 Output: 1 if failed, 0 if suceeded
 */
-int readFile(char filename[] ,struct Macro *mHead)
+int _readFile(char filename[] ,struct Macro *mHead)
 {
 	char line [MAX_LINE_LEN];
 	FILE *fpr;
@@ -112,7 +112,7 @@ Copy the contents of the corresponding macro to the file from the table, if it i
 Input: string line, file pointer and Macro table head tail
 Output: 1 if given line is a macro command, 0 otherwise
 */
-int isMacroCommand(char line[], FILE *fpw,struct Macro *mTail)
+int _isMacroCommand(char line[], FILE *fpw,struct Macro *mTail)
 {
 	int index = 0, mIndex = 0;
 	char mName [MAX_LINE_LEN];
@@ -148,7 +148,7 @@ Checks if the given line is macro or not and returns mFlag accordingly.
 Input: output file pointer, Macro table tail and String line
 Output: -1 if the line should be ignored, 1 if it's a macro call, 0 otherwise (regular line).
 */
-int checkLine(FILE *fpw, struct Macro *tail, char *line) {
+int _checkLine(FILE *fpw, struct Macro *tail, char *line) {
 	static int mFlag;
 	int isMacroRelated;
 
@@ -183,7 +183,7 @@ Writes lines from given inputFilename to outputFilename based on the checkLine()
 Input: String inputFilename and outputFilename, and a pointer to the macro table
 Output: none
 */
-void writeFile(char inputFilename[], char outputFilename[], struct Macro *tail) {
+void _writeFile(char inputFilename[], char outputFilename[], struct Macro *tail) {
 	FILE *fpr, *fpw;
     char line[MAX_LINE_LEN];
     int mflag;

@@ -1,5 +1,6 @@
 #include "dataStructures.h"
 #include "filesGenerator.h"
+#include "global.h"
 
 
 /* Initialize variables */
@@ -100,7 +101,14 @@ char *_encodeWord(char word[])
     int i;
     char twoBinaryDigits[3];
     char *wordEncoded;
-    wordEncoded = (char *) malloc(8);
+    wordEncoded = (char *) malloc(sizeof(char)*9);
+
+    if (!wordEncoded) {
+        printf("Error: Failed to allocate memory during encoding the words.\n");
+        exit(1);
+    }
+
+    wordEncoded[0] = '\0';
 
     /* Translate base2 >> base4 >> special encoding */
     for (i=0; i < 14; i+=2) {
@@ -127,23 +135,9 @@ Add to the OBJECT_FILE_TYPE file the encoded words from binaryWordHead lines enc
 Input: filename of the new file, instCount (number of instructions), dataCount (number of data lines) and MemoryData structure.
 Output: None
 */
-void generateObjectFile(char filename[], int instCount, int dataCount, struct MemoryData *binaryWordHead) 
+void generateObjectFile(char filename[], int decimalAddress, char binaryWord[]) 
 {
-    /* Initializing file names and the current Symbol */
-    char objectFileName[100];
-    MemoryData *currLine = binaryWordHead;
-    MemoryData *tmp;
-    sprintf(objectFileName, "%s%s", filename, OBJECT_FILE_TYPE);
-
-    /* Going over all the memory lines */    
-    while (currLine) {
-        char newline[50];
-
-        snprintf(newline, 50, "%d\t%s", currLine->decimalAddress, _encodeWord(currLine->binary));
-        _writeToFile(objectFileName, newline);
-
-        tmp = currLine->next;
-        /*free(currLine);*/ /* Uncomment this in final run, when the data structures are taking up memory */
-        currLine = tmp;
-    }
+    char newline[MAX_LINE_LEN];
+    snprintf(newline, MAX_LINE_LEN, "%d\t%s", decimalAddress, _encodeWord(binaryWord));
+    writeToObjectFile(filename, newline);
 }

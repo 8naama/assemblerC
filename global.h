@@ -1,1 +1,4 @@
 #define MAX_LINE_LEN 100
+#define MAX_LABEL_NAME_LEN 31
+#define MACRO_OUTPUT_FILE_TYPE ".am"
+#define ASSEMBLY_FILE_TYPE ".as"

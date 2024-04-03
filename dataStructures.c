@@ -19,6 +19,7 @@ Symbol *findInSymbolsTable(char name[])
     return NULL;
 }
 
+
 /* test function: to be removed in the final version */
 void printSymbols() {
     Symbol *curr = symbolTableHead;
@@ -36,7 +37,7 @@ void printSymbols() {
             strcpy(type, "code");
         else if (curr->type == data)
             strcpy(type, "data");
-        else
+        else if (curr->type == mdefine)
             strcpy(type, "mdefine");
 
         printf("row; %s | %d | %s | %s\n", curr->name, curr->value, method, type);

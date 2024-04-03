@@ -3,7 +3,6 @@
 #include <string.h>
 #include "global.h"
 
-#define READ_FILE_TYPE ".am"
 #define COMMENT_SIGN ";"
 #define LABEL_SIGN ":"
 

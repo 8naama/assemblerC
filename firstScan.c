@@ -141,6 +141,12 @@ int _saveSymbolToTable(char name[], enum SymbolType type, enum SymbolUpdateMetho
 
         if (!symbolTableHead) {  /* The first item in the table */
             symbolTableHead = (struct Symbol *)malloc(sizeof(enum SymbolUpdateMethod) * sizeof(enum SymbolType) * sizeof(struct Symbol));
+
+            if (!symbolTableHead) {
+                printf("Error: Failed to allocate memory for Symbol %s\n", name);
+                exit(1);
+            }
+
             strcpy(symbolTableHead->name, name);
             symbolTableHead->type = type;
             symbolTableHead->method = method;
@@ -151,6 +157,12 @@ int _saveSymbolToTable(char name[], enum SymbolType type, enum SymbolUpdateMetho
         }
         else {
         newItem = (Symbol*) malloc(sizeof(Symbol));
+
+        if (!newItem) {
+            printf("Error: Failed to allocate memory for Symbol %s\n", name);
+            exit(1);
+        }
+
         strcpy(newItem->name, name);
         newItem->type = type;
         newItem->method = method;
@@ -191,6 +203,12 @@ char *_findLabel(char line[])
 
     /* copy the line to a temp field to not edit org line and search for label */
     tempLine = (char *) malloc(strlen(line)+1);
+
+    if (!tempLine) {
+        printf("Error: Failed to search for label due to memory allocation fail.\n");
+        exit(1);
+    }
+
     strcpy(tempLine, line);
     label = strtok(tempLine, LABEL_SIGN);
 
@@ -245,6 +263,11 @@ int _handleDataLine(char line[])
         /* check if .data or .string */  
         sscanf(line, "%[^:]: .%s", key, currAction);
         string = (char *) malloc(MAX_LINE_LEN-strlen(key)+1);
+
+        if (!string) {
+            printf("Error: failed to check data during first scan.\n");
+            exit(1);
+        }
 
         /* get needed variables from each action type */
         if (strcmp(currAction, "string") == 0) {
@@ -347,6 +370,12 @@ int _handleCodeLine(char line[], enum lineType type)
     /* copy the line to a temp field to not edit org line and search for label */
     label = _findLabel(line);
     tempLine = (char *) malloc(strlen(line)+1);
+
+    if (!tempLine) {
+        printf("Error: Failed to allocate memory during first scan.\n");
+        exit(1);
+    }
+
     strcpy(tempLine, line);
     strtok(tempLine, LABEL_SIGN);
 
@@ -391,8 +420,14 @@ int firstScan(char filename[])
     char line [MAX_LINE_LEN], *fullFileName, header[MAX_LINE_LEN];
     FILE *file;
     enum lineType currLineType;
-    fullFileName = (char *) malloc(strlen(filename)+strlen(READ_FILE_TYPE)+1);
-    sprintf(fullFileName, "%s%s", filename, READ_FILE_TYPE);
+    fullFileName = (char *) malloc(strlen(filename)+strlen(MACRO_OUTPUT_FILE_TYPE)+1);
+
+    if (!fullFileName) {
+        printf("Error: Failed to allocate memory during first scan.\n");
+        exit(1);
+    }
+
+    sprintf(fullFileName, "%s%s", filename, MACRO_OUTPUT_FILE_TYPE);
     file = fopen(fullFileName, "r");
 
     /* if failed to open the file, throws error */

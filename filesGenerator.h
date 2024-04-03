@@ -10,4 +10,4 @@
 void writeToObjectFile(char filename[], char newline[]);
 void writeToExternalFile(char filename[], char key[], int lineNumber);
 void generateEntryFile(char filename[]);
-void generateObjectFile(char filename[], int instCount, int dataCount, struct MemoryData *binaryWordHead);
+void generateObjectFile(char filename[], int decimalAddress, char binaryWord[]);

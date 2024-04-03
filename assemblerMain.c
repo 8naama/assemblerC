@@ -1,11 +1,9 @@
 #include "dataStructures.h"
 #include "firstScan.h"
 #include "macro.h"
+#include "global.h"
 #include "filesGenerator.h"
 #include <string.h>
-
-
-#define ORIGINAL_FILE_EXTENSION ".as"
 
 
 /*
@@ -19,7 +17,7 @@ int main(int argc, char *argv[])
 
 
     if (argc == 1) {
-        printf("Error: Please enter at least one %s file as argument\n", ORIGINAL_FILE_EXTENSION);
+        printf("Error: Please enter at least one %s file as argument\n", ASSEMBLY_FILE_TYPE);
         exit(1);
     }
 
@@ -34,13 +32,13 @@ int main(int argc, char *argv[])
         else {
             fileExtension = &filename[strlen(filename)-3];
 
-            if (strcmp(fileExtension, ORIGINAL_FILE_EXTENSION) != 0) {
-                printf("ERROR: file %s has extension %s but expected %s\n", filename, fileExtension, ORIGINAL_FILE_EXTENSION);
+            if (strcmp(fileExtension, ASSEMBLY_FILE_TYPE) != 0) {
+                printf("Error: file %s has extension %s but expected %s\n", filename, fileExtension, ASSEMBLY_FILE_TYPE);
                 exit(1);
             }
         }
         if (!(fd = fopen(filename, "r"))) {
-            fprintf(stderr, "ERROR: File %s does not exist or missing read permissions\n", filename);
+            printf("Error: File %s does not exist or missing read permissions\n", filename);
             exit(1);
         }
     }
@@ -60,8 +58,9 @@ int main(int argc, char *argv[])
         printSymbols();
 
         if (succesful_scan == 0)
-            printf("call second scan");
+            printf("call second scan\n");
             /* call second scan here */
+            /* EXAMPLE HOW TO USE OBJECT FILE GENERATOR IN 2nd SCAN: generateObjectFile("object", 100, "00000000111000"); */
     }
 
     return succesful_scan;

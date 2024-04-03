@@ -2,14 +2,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#define MAX 100
-#define INPUT_FILE_TYPE ".as"
-#define OUTPUT_FILE_TYPE ".am"
 
+#define MAX_LINE_LEN 100
+#define MAX_LABEL_NAME_LEN 31
 
 struct Macro {
-    char name[MAX];
-    char content[MAX];
+    char name[MAX_LABEL_NAME_LEN];
+    char content[MAX_LINE_LEN];
     struct Macro* next;
 };
 

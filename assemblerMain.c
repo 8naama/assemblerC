@@ -62,8 +62,9 @@ int main(int argc, char *argv[])
             printf("call second scan here\n");
             myfunc("MAIN");
             myfunc("other");
-         }
-        /*generateObjectFile("object", 100, "00000000111000");*/
+        }
+        /* Example how to call function that encodes the binaryand writes to the object file: */
+        /* generateObjectFile("object", 100, "00000000111000"); */
     }
 
     return succesful_scan;

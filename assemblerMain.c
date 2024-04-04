@@ -3,6 +3,7 @@
 #include "macro.h"
 #include "global.h"
 #include "filesGenerator.h"
+#include "secondScan.h"
 #include <string.h>
 
 
@@ -57,10 +58,12 @@ int main(int argc, char *argv[])
 
         printSymbols();
 
-        if (succesful_scan == 0)
-            printf("call second scan\n");
-            /* call second scan here */
-            /* EXAMPLE HOW TO USE OBJECT FILE GENERATOR IN 2nd SCAN: generateObjectFile("FILE_NAME_WITHOUT_EXTENTION", 100, "00000000111000"); */
+        if (succesful_scan == 0) {
+            printf("call second scan here\n");
+            myfunc("MAIN");
+            myfunc("other");
+         }
+        /*generateObjectFile("object", 100, "00000000111000");*/
     }
 
     return succesful_scan;

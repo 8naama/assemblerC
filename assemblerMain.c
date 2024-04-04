@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
             myfunc("other");
         }
         /* Example how to call function that encodes the binaryand writes to the object file: */
-        /* generateObjectFile("object", 100, "00000000111000"); */
+        /* generateObjectFile("FILE_NAME_NO_EXTENTION", 100, "00000000111000"); */
     }
 
     return succesful_scan;

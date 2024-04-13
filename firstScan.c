@@ -1,126 +1,16 @@
 #include "dataStructures.h"
 #include "filesGenerator.h"
+#include "global.h"
 #include "firstScan.h"
 
 
 /* Initialize variables relevant to the first scan */
-char *commandTwoArgs[5] = {"mov", "cmp", "add", "sub", "lea"};
-char *commandOneArgs[9] = {"not", "clr", "inc", "dec", "jmp", "bne", "red", "prn", "jsr"};
-char *commandNoArgs[2] = {"rts", "hlt"};
-char *definitionAndDirective[5] = {".data", ".string", ".entry", ".extern", ".define"};
-char *registriesNames[8] = {"r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7"};
-
 int currDecimalAddr = 100;  /* the decimal addresses counter */
 struct Symbol *symbolTableNext;  /* pointer to mark place at the table */
 
 /* variables for the Object file's header  */
 int instructionsSectionLen = 0;
 int dataSectionLen = 0;
-
-
-/*
-If given word starts with given substring, return 1 otherwise return 0.
-
-Input: word to check if starts with given substring
-Output: 1 if word starts with substring, 0 otherwise
-*/
-int _startsWith(char *word, char *substring)
-{
-    if(strncmp(word, substring, strlen(substring)) == 0)
-        return 1;
-    return 0;
-}
-
-
-/*
-Returns if the given Strings array contains the given word.
-
-Input: Array of strings and a word string.
-Output: 1 if array contains the word, 0 otherwise
-*/
-int _stringArrayContains(char *arr[], int arrLen, char word[])
-{
-    int i;
-    for (i=0; i < arrLen; i++) {
-        if (strcmp(arr[i], word) == 0)
-            return 1;
-    }
-    return 0;
-}
-
-
-/*
-Returns if the given line contains a word from the given array.
-
-Input: Array of strings, it's length and a string line.
-Output: 1 if the line contains a word from the array, 0 otherwise
-*/
-int _lineContainsOneOf(char *arr[], int arrLen, char line[])
-{
-    int i;
-    for (i=0; i <= arrLen; i++) {
-        if (strstr(line, arr[i]))
-            return 1;
-    }
-    return 0;
-}
-
-/*
-Returns if the given word is in the definitionAndDirective array.
-
-Input: string word.
-Output: 1 if the word means the line is data line, 0 otherwise
-*/
-int _isData(char line[])
-{
-    int length = sizeof(definitionAndDirective) / sizeof(definitionAndDirective[0]) - 1;
-    return _lineContainsOneOf(definitionAndDirective, length, line);
-}
-
-
-/*
-Returns if the given word is a known code word and it's type:
-- code0: no args
-- code1: 1 arg
-- code2: 2 args
-
-Input: string word.
-Output: code type if the word is code, NULL otherwise
-*/
-enum lineType _isCode(char line[])
-{
-    int length0 = sizeof(commandNoArgs) / sizeof(commandNoArgs[0]) - 1,
-        length1 = sizeof(commandOneArgs) / sizeof(commandOneArgs[0]) - 1,
-        length2 = sizeof(commandTwoArgs) / sizeof(commandTwoArgs[0]) - 1;
-
-    if (_lineContainsOneOf(commandNoArgs, length0, line))
-        return code0;
-    else if (_lineContainsOneOf(commandOneArgs, length1, line))
-        return code1;
-    else if (_lineContainsOneOf(commandTwoArgs, length2, line))
-        return code2;
-    return none;
-}
-
-
-/*
-Returns the given line instruction type.
-
-Input: String line.
-Output: code type, data type or NULL for comments and empty lines
-*/
-enum lineType _findInstructionType(char line[])
-{
-    enum lineType codeType;
-
-    if (_startsWith(line, COMMENT_SIGN))
-        return none;
-    else if (_isData(line))
-        return dataLine;
-    codeType = _isCode(line);
-        return codeType;
-    return none;
-}
 
 
 /*
@@ -236,7 +126,7 @@ Output: 0 if successful, 1 otherwise.
 int _handleDataLine(char line[])
 {
     /* initializing variables */
-    int value = -1,
+    int value = 0,
         commaCount = 1,
         isSuccessful;
     char key[MAX_LABEL_NAME_LEN], currAction[7], *string, *ptr;
@@ -244,15 +134,15 @@ int _handleDataLine(char line[])
     enum SymbolUpdateMethod method = relocatable;
 
     /* get needed variables from each action type */
-    if (_startsWith(line, ".define")) {
+    if (startsWith(line, ".define")) {
         sscanf(line, ".define %s = %d", key, &value);
         type = mdefine;
     }
-    else if (_startsWith(line, ".entry")) {
+    else if (startsWith(line, ".entry")) {
         sscanf(line, ".entry %s", key);
         method = entry;
     }
-    else if (_startsWith(line, ".extern")) {
+    else if (startsWith(line, ".extern")) {
         sscanf(line, ".extern %s", key);
         method = external;
     }
@@ -308,7 +198,6 @@ int _verifyCommandArgs(char command[], int reqArgsAmount)
         currArgsCount = 0,
         linesToAdd = 1;
     char *currArg, cmdName[MAX_LINE_LEN], args[MAX_LINE_LEN], *openSquare, *closeSquare;
-    int length = sizeof(registriesNames) / sizeof(registriesNames[0]) - 1;
 
     /* Skip the command */
     sscanf(command, "%s %[^\n]", cmdName, args);
@@ -320,7 +209,7 @@ int _verifyCommandArgs(char command[], int reqArgsAmount)
         currArgsCount += 1;
 
         /* check if it's registry argument */
-        if (_stringArrayContains(registriesNames, length, currArg)) {
+        if (isRegistry(currArg)) {
             if (!registryArgExists) {
                 registryArgExists = 1;
                 linesToAdd += 1;
@@ -420,8 +309,9 @@ int firstScan(char filename[])
     char line [MAX_LINE_LEN], *fullFileName, header[MAX_LINE_LEN];
     FILE *file;
     enum lineType currLineType;
-    fullFileName = (char *) malloc(strlen(filename)+strlen(MACRO_OUTPUT_FILE_TYPE)+1);
 
+    /* opening the file */
+    fullFileName = (char *) malloc(strlen(filename)+strlen(MACRO_OUTPUT_FILE_TYPE)+1);
     if (!fullFileName) {
         printf("Error: Failed to allocate memory during first scan.\n");
         exit(1);
@@ -439,7 +329,7 @@ int firstScan(char filename[])
     /* reading lines from the file */
     while (fgets(line, MAX_LINE_LEN, file)) {
         /* finding if the line is code, data or line we should ignore (comment and empty lines) */
-        currLineType = _findInstructionType(line);
+        currLineType = findInstructionType(line);
 
         if (currLineType == code0 || currLineType == code1 || currLineType == code2)
             isSuccessful = _handleCodeLine(line, currLineType);
@@ -460,3 +350,4 @@ int firstScan(char filename[])
 
     return isSuccessful;
 }
+

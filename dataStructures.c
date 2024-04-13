@@ -23,7 +23,7 @@ Symbol *findInSymbolsTable(char name[])
 /* test function: to be removed in the final version */
 void printSymbols() {
     Symbol *curr = symbolTableHead;
-        char method[20] = "", type[10] = "";
+    char method[20] = "", type[10] = "";
 
     while (curr) {
         if (curr->method == external)
@@ -44,3 +44,4 @@ void printSymbols() {
         curr = curr->next;
     }
 }
+

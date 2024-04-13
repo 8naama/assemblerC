@@ -25,14 +25,8 @@ typedef struct Symbol {
     struct Symbol *next;
 } Symbol;
 
-typedef struct MemoryData {
-    int decimalAddress;
-    char binary[14];
-    struct MemoryData *next;
-} MemoryData;
-
-
 struct Symbol *symbolTableHead;
 
 Symbol *findInSymbolsTable(char name[]);
 void printSymbols(); /* test func - to remove in final version */
+

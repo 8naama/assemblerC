@@ -44,14 +44,20 @@ int main(int argc, char *argv[])
         }
     }
 
+    /* run the actual scan */
     for (i = 1; i < argc; i++) {
         filename = argv[i];
 
         filenameLen = strlen(filename);
         filenameNoExtention = (char *) malloc(filenameLen+1);
+
+        if (!filenameNoExtention) {
+            printf("Error: Failed to allocate memory while generating filename.");
+            exit(1);
+        }
+
         strncpy(filenameNoExtention, filename, filenameLen - 3);
         filenameNoExtention[filenameLen - 3] = '\0';
-
 
         spreadMacros(filenameNoExtention);
         succesful_scan = firstScan(filenameNoExtention);
@@ -59,13 +65,12 @@ int main(int argc, char *argv[])
         printSymbols();
 
         if (succesful_scan == 0) {
-            printf("call second scan here\n");
-            myfunc("MAIN");
-            myfunc("other");
-        }
-        /* Example how to call function that encodes the binaryand writes to the object file: */
-        /* generateObjectFile("FILE_NAME_NO_EXTENTION", 100, "00000000111000"); */
+            printf("calling second scan\n");
+            secondScan(filenameNoExtention);
+         }
+        /*generateObjectFile("object", 100, "00000000111000");*/
     }
 
     return succesful_scan;
 }
+

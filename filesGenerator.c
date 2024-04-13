@@ -112,7 +112,7 @@ char *_encodeWord(char word[])
 
     /* Translate base2 >> base4 >> special encoding */
     for (i=0; i < 14; i+=2) {
-        twoBinaryDigits[0] = '\0';
+        twoBinaryDigits[2] = '\0';
         strncpy(twoBinaryDigits, word, 2);
         word += 2;
 
@@ -135,9 +135,10 @@ Add to the OBJECT_FILE_TYPE file the encoded words from binaryWordHead lines enc
 Input: filename of the new file, instCount (number of instructions), dataCount (number of data lines) and MemoryData structure.
 Output: None
 */
-void generateObjectFile(char filename[], int decimalAddress, char binaryWord[]) 
+void addBinaryWordInObjectFile(char filename[], int decimalAddress, char binaryWord[]) 
 {
     char newline[MAX_LINE_LEN];
     snprintf(newline, MAX_LINE_LEN, "%d\t%s", decimalAddress, _encodeWord(binaryWord));
     writeToObjectFile(filename, newline);
 }
+

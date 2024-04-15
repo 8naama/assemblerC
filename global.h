@@ -1,6 +1,8 @@
 #include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
 
-#define MAX_LINE_LEN 100
+#define MAX_LINE_LEN 80
 #define MAX_LABEL_NAME_LEN 31
 #define MACRO_OUTPUT_FILE_TYPE ".am"
 #define ASSEMBLY_FILE_TYPE ".as"
@@ -20,4 +22,5 @@ enum lineType {
 int startsWith(char *word, char *substring);
 enum lineType findInstructionType(char line[]);
 int isRegistry(char arg[]);
+void verifyInput(int argc, char *argv[]);
 

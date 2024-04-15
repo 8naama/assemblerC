@@ -3,8 +3,9 @@
 #include <string.h>
 #include <ctype.h>
 
-#define MAX_LINE_LEN 100
 #define MAX_LABEL_NAME_LEN 31
+#define MAX_LINE_LEN 80
+
 
 struct Macro {
     char name[MAX_LABEL_NAME_LEN];

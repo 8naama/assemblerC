@@ -7,6 +7,12 @@
 int currentAddr = 100;  /* the decimal addresses counter */
 
 
+/*
+Translates the given number 'n' to binary with numBits bits.
+
+Input: number n and the amount of bits to output it's binary format
+Output: n in binary in length numBits.
+*/
 char* _decimalToBinary(int n, int numBits) {
     char *p;
     int i, absN;
@@ -56,8 +62,8 @@ char* _decimalToBinary(int n, int numBits) {
 Returns the line without the label part if exists.
 If doesn't exists return the original line.
 
-Input:
-Output:
+Input: String line
+Output: The line without label, if no label found, returns the original line
 */
 char* _skipLabelAndSpaces(char line[])
 {
@@ -83,10 +89,17 @@ char* _skipLabelAndSpaces(char line[])
     }
     while (isspace(line[i++]))
         line++;
+    free(tempLine);
     return line;
 }
 
 
+/*
+Generate binary words for data lines (.string and .data).
+
+Input: the name of the filename to output the words to and the line to translate.
+Output: none
+*/
 void _generateDataWords(char filename[], char line[])
 {
     char action[7], args[MAX_LINE_LEN], arg[MAX_LABEL_NAME_LEN], newWord[15] = "00000000000000", *ptr;
@@ -96,7 +109,7 @@ void _generateDataWords(char filename[], char line[])
 
     if (strcmp(action, "string") == 0) {
         for (i = 1; i < strlen(args)-1; i++) {
-            if isalpha(args[i]) {
+            if (isalpha(args[i])) {
                 strncpy(newWord, _decimalToBinary((int)args[i], 14), 14);
                 addBinaryWordInObjectFile(filename, currentAddr, newWord);
                 currentAddr++;
@@ -109,7 +122,7 @@ void _generateDataWords(char filename[], char line[])
     }
     else { /* action == data */
         ptr = args;
-        while (sscanf(ptr, "%[^,], ", arg) == 1) {
+        while (sscanf(ptr, "%[^, ], ", arg) == 1) {
             isSymbol = findInSymbolsTable(arg);
 
             /* make binary word for curr arg */
@@ -135,6 +148,12 @@ void _generateDataWords(char filename[], char line[])
 }
 
 
+/*
+Returns the op code of the given operation.
+
+Input: operation name
+Output: the operation code
+*/
 char *_getOpCode(char op[])
 {
     char *opBin;
@@ -177,6 +196,12 @@ char *_getOpCode(char op[])
 }
 
 
+/*
+Recieves an argument and returns it's address type (immidiate, direct, fixed index, register)
+
+Input: argument name
+Output: the argument address type.
+*/
 enum argType _findArgumentType(char arg[])
 {
     if (strlen(arg) == 0)
@@ -191,6 +216,12 @@ enum argType _findArgumentType(char arg[])
 }
 
 
+/*
+Returns the binary code of the given argument address type.
+
+Input: argument adress type (immidiate, direct, fixed index, register)
+Output: the argument address type binary code
+*/
 char *_getArgumentTypeBinary(enum argType type)
 {
     char *result;
@@ -208,6 +239,12 @@ char *_getArgumentTypeBinary(enum argType type)
 }
 
 
+/*
+Returns the number of the given register
+
+Input: register name (r3, r8, r5..)
+Output the register number (3, 8, 5..)
+*/
 int _getRegistryNum(char arg[])
 {
     int num;
@@ -216,6 +253,12 @@ int _getRegistryNum(char arg[])
 }
 
 
+/*
+Generates the binary word of operation where both the source and the destenation were registers.
+
+Input: source and destenation arguments names and the filename to write the words at.
+Output: none
+*/
 void _generateMultiRegistryWord(char filename[], char srcArg[], char destArg[])
 {
     char newWord[15] = "000000xxxxxx00";
@@ -230,6 +273,12 @@ void _generateMultiRegistryWord(char filename[], char srcArg[], char destArg[])
 }
 
 
+/*
+Generates binary words for operation that had a register as a source or destenation.
+
+Input: the argument name, and srcOrdest (0 for source, else destenation) and the filename to output the binary words to.
+Output: none
+*/
 void _generateNextRegWord(char filename[], char arg[], int srcOrdest)
 {
     char newWord[15] = "000000xxxxxx00";
@@ -249,6 +298,12 @@ void _generateNextRegWord(char filename[], char arg[], int srcOrdest)
 }
 
 
+/*
+Generates binary word for operation that had argument with direc address.
+
+Input: argument name and the filename to output the binary word to.
+Output: none.
+*/
 void _generateNextDirectWord(char filename[], char arg[])
 {
     char newWord[15] = "xxxxxxxxxxxxxx";
@@ -275,6 +330,12 @@ void _generateNextDirectWord(char filename[], char arg[])
 }
 
 
+/*
+Generates binary word for operation that had an argument with index address.
+
+Input: argument name and the filename to output the binary words to.
+Output: none.
+*/
 void _generateNextIndexWord(char filename[], char arg[])
 {
     char newWord[15] = "xxxxxxxxxxxx00";
@@ -293,6 +354,12 @@ void _generateNextIndexWord(char filename[], char arg[])
 }
 
 
+/*
+Generates binary word for operation that had an argument with immidiate address.
+
+Input: argument name and the filename to output the binary words to.
+Output: none.
+*/
 void _generateNextImmWord(char filename[], char arg[])
 {
     char val[MAX_LABEL_NAME_LEN];
@@ -302,6 +369,12 @@ void _generateNextImmWord(char filename[], char arg[])
 }
 
 
+/*
+Manages which functions to call to generate binary words per the given argument and it's adress type.
+
+Input: argument name and address type, srcOrdest (0 for source, else destenation) and the filename to output the words into.
+Output: none
+*/
 void _generateNextWordPerArgType(char filename[], char arg[], enum argType type, int srcOrdest)
 {
     char arr[MAX_LABEL_NAME_LEN], ind[MAX_LABEL_NAME_LEN]; 
@@ -320,6 +393,12 @@ void _generateNextWordPerArgType(char filename[], char arg[], enum argType type,
 }
 
 
+/*
+Sends the given arguments to functions which generates binary words based on the given source and destenation arguments.arguments types.
+
+Input: source and destenation argument names and address types, as well as filename to output the files for.
+Output: none
+*/
 void _generateNextCodeWords(char filename[], char srcArg[], enum argType srcType, char destArg[], enum argType destType)
 {
     if (srcType == directRegister && destType == directRegister) {
@@ -336,6 +415,13 @@ void _generateNextCodeWords(char filename[], char srcArg[], enum argType srcType
     }
 }
 
+
+/*
+Generates the binary words for code instructions.
+
+Input: instruction line and it's type (code0, code1, code2, data) and the filename to output the binary words into at the end.
+Output: none
+*/
 void _generateCodeWords(char filename[], char line[], enum lineType currLineType)
 {
     char firstBinaryWord[15] = "0000xxxxxxxx00",
@@ -347,13 +433,13 @@ void _generateCodeWords(char filename[], char line[], enum lineType currLineType
 
     /* Generate the first word */
     if (currLineType == code0) {
-        sscanf(line, "%[^\n]", command);
+        sscanf(line, "%[^ \n]", command);
     }
     else if (currLineType == code1) {
-        sscanf(line, "%4s %[^\n]", command, dest);
+        sscanf(line, "%4s %[^ \n]", command, dest);
     }
     else {  /* currLineType == code2 */
-        sscanf(line, "%4s %[^,], %[^\n]", command, src, dest);
+        sscanf(line, "%4s %[^,], %[^ \n]", command, src, dest);
     }
 
     /* Add opCode to the first word */
@@ -382,8 +468,8 @@ void _generateCodeWords(char filename[], char line[], enum lineType currLineType
 /* 
 Checks the given line type and sends it to relevant function that would generate the binary word.
 
-Input:
-Output:
+Input: the line that was read and the filename to output the words into
+Output: none
 */
 void _generateBinaryWords(char filename[], char line[]) {
     enum lineType currLineType;

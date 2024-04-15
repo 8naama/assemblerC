@@ -117,8 +117,8 @@ enum lineType findInstructionType(char line[])
 /*
 Returns 1 if the given argument is a registry, 0 otherwise.
 
-Input:
-Output:
+Input: argument name
+Output: 1 if it's a registry, 0 otherwise.
 */
 int isRegistry(char arg[])
 {
@@ -126,4 +126,42 @@ int isRegistry(char arg[])
     if (_stringArrayContains(registriesNames, length, arg))
         return 1;
     return 0;
+}
+
+
+/*
+For the main functions, verifys that the files it got are in the needed format and can be opened.
+*/
+void verifyInput(int argc, char *argv[])
+{
+    int i;
+    char *filename, *fileExtension;
+    FILE * fd;
+
+    if (argc == 1) {
+        printf("Error: Please enter at least one %s file as argument\n", ASSEMBLY_FILE_TYPE);
+        exit(1);
+    }
+
+    /* verify the filename length, extension type and permissions */
+    for (i = 1; i < argc; i++) {
+        filename = argv[i];
+
+        if (strlen(filename) < 4) {
+            printf("Error: provided filename %s is too short.\n", filename);
+            exit(1);
+        }
+        else {
+            fileExtension = &filename[strlen(filename)-3];
+
+            if (strcmp(fileExtension, ASSEMBLY_FILE_TYPE) != 0) {
+                printf("Error: file %s has extension %s but expected %s\n", filename, fileExtension, ASSEMBLY_FILE_TYPE);
+                exit(1);
+            }
+        }
+        if (!(fd = fopen(filename, "r"))) {
+            printf("Error: File %s does not exist or missing read permissions\n", filename);
+            exit(1);
+        }
+    }
 }

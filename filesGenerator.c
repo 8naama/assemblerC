@@ -37,9 +37,11 @@ Output: None
 */
 void writeToObjectFile(char filename[], char newline[])
 {
-    char objectFileName[strlen(filename)+strlen(OBJECT_FILE_TYPE)+1];
+    char *objectFileName;
+    objectFileName = (char *) malloc(strlen(filename)+strlen(OBJECT_FILE_TYPE)+1);
     sprintf(objectFileName, "%s%s", filename, OBJECT_FILE_TYPE);
     _writeToFile(objectFileName, newline);
+    free(objectFileName);
 }
 
 
@@ -51,12 +53,13 @@ Output: None
 */
 void writeToExternalFile(char filename[], char key[], int lineNumber)
 {
-    char externalFileName[strlen(filename)+strlen(EXTERNAL_FILE_TYPE)+1], 
-         newline[strlen(key)+5];
+    char *externalFileName, 
+         newline[MAX_LINE_LEN];
+    externalFileName = (char *) malloc(strlen(filename)+strlen(EXTERNAL_FILE_TYPE)+1);
     sprintf(externalFileName, "%s%s", filename, EXTERNAL_FILE_TYPE);
     sprintf(newline, "%s\t%d", key, lineNumber);
-
     _writeToFile(externalFileName, newline);
+    free(externalFileName);
 }
 
 /*
@@ -70,8 +73,10 @@ void generateEntryFile(char filename[])
     /* Initializing file name and the current Symbol */
     Symbol *currSymbol = symbolTableHead, 
            *tmp;
-    char entryFileName[strlen(filename)+strlen(ENTRY_FILE_TYPE)+1],
+    char *entryFileName,
          newline[MAX_LABEL_NAME_LEN+6];
+
+    entryFileName = (char *) malloc(strlen(filename)+strlen(ENTRY_FILE_TYPE)+1);
     sprintf(entryFileName, "%s%s", filename, ENTRY_FILE_TYPE);
 
     /* Going over all the Symbols */
@@ -86,6 +91,7 @@ void generateEntryFile(char filename[])
         tmp = currSymbol->next;
         currSymbol = tmp;
     }
+    free(entryFileName);
 }
 
 
@@ -138,7 +144,7 @@ Output: None
 void addBinaryWordInObjectFile(char filename[], int decimalAddress, char binaryWord[]) 
 {
     char newline[MAX_LINE_LEN];
-    snprintf(newline, MAX_LINE_LEN, "%d\t%s", decimalAddress, _encodeWord(binaryWord));
+    sprintf(newline, "%d\t%s", decimalAddress, _encodeWord(binaryWord));
     writeToObjectFile(filename, newline);
 }
 

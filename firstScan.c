@@ -18,29 +18,38 @@ Recieves information for a new symbol to save, make sure it doesn't exist yet an
 Since .entry and .extern are separate from a Symbol value and type definitions, handles updating the
 Symbol's method or it's value and type accordingly.
 
-Input: the new symbol info; name ,type (data or code), method (external, entry, relocatable) and it's value.
+Input: the new symbol info; name ,type (data or code), method (external, entry, relocatable), it's value and if it was defined already (0 for entry\extern, 1 otherwise).
 Output: 0 if saved successfuly, 1 otherwise.
 */
-int _saveSymbolToTable(char name[], enum SymbolType type, enum SymbolUpdateMethod method, int value) {
+int _saveSymbolToTable(char name[], enum SymbolType type, enum SymbolUpdateMethod method, int value, int isDefined) {
     Symbol *alreadyExists, *newItem;
+    enum lineType isNameValid;
 
     alreadyExists = findInSymbolsTable(name);
 
     /* new Symbol */
     if (!alreadyExists) {
 
+        /* Validate the new symbol's name*/
+        isNameValid = findInstructionType(name);
+        if (isRegistry(name) || isNameValid != none) {
+            printf("Error: Symbol name '%s' is invalid.\nPlease make sure to name your symbol in a unique name that is not a registry or a saved instruction name.\n", name);
+            return 1;
+        }
+
         if (!symbolTableHead) {  /* The first item in the table */
             symbolTableHead = (struct Symbol *)malloc(sizeof(enum SymbolUpdateMethod) * sizeof(enum SymbolType) * sizeof(struct Symbol));
 
             if (!symbolTableHead) {
                 printf("Error: Failed to allocate memory for Symbol %s\n", name);
-                exit(1);
+                return 1;
             }
 
             strcpy(symbolTableHead->name, name);
             symbolTableHead->type = type;
             symbolTableHead->method = method;
             symbolTableHead->value = value;
+            symbolTableHead->isDefinedAlready = isDefined;
             symbolTableHead->next = NULL;
             
             symbolTableNext = symbolTableHead;
@@ -50,13 +59,14 @@ int _saveSymbolToTable(char name[], enum SymbolType type, enum SymbolUpdateMetho
 
         if (!newItem) {
             printf("Error: Failed to allocate memory for Symbol %s\n", name);
-            exit(1);
+            return 1;
         }
 
         strcpy(newItem->name, name);
         newItem->type = type;
         newItem->method = method;
         newItem->value = value;
+        newItem->isDefinedAlready = isDefined;
         newItem->next = NULL;
 
         symbolTableNext->next = newItem;
@@ -64,16 +74,16 @@ int _saveSymbolToTable(char name[], enum SymbolType type, enum SymbolUpdateMetho
 }
     }
     else {
-        /* already saved the symbol's value and type, now update that it's .entry or .extern */
-        if ((method == entry || method == external) && alreadyExists->method == relocatable)
+        /* Symbol's value and type saved already, now update that it's .entry or .extern */
+        if (isDefined == 0 && alreadyExists->isDefinedAlready == 1)
             alreadyExists->method = method;
-        /* already saved that the symbol as .entry or .extern, now update the value and line type*/
-        else if (alreadyExists->method == entry || alreadyExists->method == external) {
+        /* Symbol saved as .entry or .extern, now update the value and line type*/
+        else if (isDefined == 1 && alreadyExists->isDefinedAlready == 0) {
             alreadyExists->type = type;
             alreadyExists->value = value;
         }
         else {
-            printf("Error: symbol %s already exists in symbol table and cannot be defined again.", name);
+            printf("Error: symbol %s already exists in symbol table and cannot be defined again.\n", name);
             return 1;
         }
     }
@@ -127,6 +137,7 @@ int _handleDataLine(char line[])
 {
     /* initializing variables */
     int value = 0,
+        isDefined = 0,
         commaCount = 1,
         isSuccessful;
     char key[MAX_LABEL_NAME_LEN], currAction[7], *string, *ptr;
@@ -137,6 +148,7 @@ int _handleDataLine(char line[])
     if (startsWith(line, ".define")) {
         sscanf(line, ".define %s = %d", key, &value);
         type = mdefine;
+        isDefined = 1;
     }
     else if (startsWith(line, ".entry")) {
         sscanf(line, ".entry %s", key);
@@ -149,6 +161,7 @@ int _handleDataLine(char line[])
     else {
         /* initialize the symbol value */  
         value  = currDecimalAddr;
+        isDefined = 1;
 
         /* check if .data or .string */  
         sscanf(line, "%[^:]: .%s", key, currAction);
@@ -179,7 +192,7 @@ int _handleDataLine(char line[])
         }
         free(string);
     }
-    isSuccessful = _saveSymbolToTable(key, type, method, value);
+    isSuccessful = _saveSymbolToTable(key, type, method, value, isDefined);
     return isSuccessful;
 }
 
@@ -270,7 +283,7 @@ int _handleCodeLine(char line[], enum lineType type)
 
     /* valid label was found, save it */
     if (label) {
-        isSuccessful = _saveSymbolToTable(label, code, relocatable, currDecimalAddr);
+        isSuccessful = _saveSymbolToTable(label, code, relocatable, currDecimalAddr, 1);
         if (isSuccessful == 1) /* program failed */
             return isSuccessful;
         tempLine = strtok(NULL, LABEL_SIGN); /* tempLine currently holds the label too, move the next part of line to it */
@@ -348,6 +361,7 @@ int firstScan(char filename[])
     /* generating the entry file */
     generateEntryFile(filename);
 
+    free(fullFileName);
     return isSuccessful;
 }
 

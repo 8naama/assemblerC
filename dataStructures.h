@@ -22,11 +22,12 @@ typedef struct Symbol {
     enum SymbolType type;
     enum SymbolUpdateMethod method;
     int value;
+    int isDefinedAlready;
     struct Symbol *next;
 } Symbol;
 
 struct Symbol *symbolTableHead;
 
 Symbol *findInSymbolsTable(char name[]);
-void printSymbols(); /* test func - to remove in final version */
+void printSymbols();
 

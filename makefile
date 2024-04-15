@@ -8,4 +8,10 @@ firstScan.o: firstScan.c
 	gcc -c -pedantic -ansi -Wall firstScan.c -o firstScan.o
 secondScan.o: secondScan.c
 	gcc -c -pedantic -ansi -Wall secondScan.c -o secondScan.o
+global.o: global.c
+	gcc -c -pedantic -ansi -Wall global.c -o global.o
+dataStructures.o: dataStructures.c
+	gcc -c -pedantic -ansi -Wall dataStructures.c -o dataStructures.o
+filesGenerator.o: filesGenerator.c
+	gcc -c -pedantic -ansi -Wall filesGenerator.c -o filesGenerator.o
 

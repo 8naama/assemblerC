@@ -13,36 +13,9 @@ This main function is temporary for test purpose.
 int main(int argc, char *argv[])
 {
     int succesful_scan = 0, i, filenameLen;
-    char *filename, *fileExtension, *filenameNoExtention;
-    FILE * fd;
+    char *filename, *filenameNoExtention;
 
-
-    if (argc == 1) {
-        printf("Error: Please enter at least one %s file as argument\n", ASSEMBLY_FILE_TYPE);
-        exit(1);
-    }
-
-    /* verify the filename length, extension type and permissions */
-    for (i = 1; i < argc; i++) {
-        filename = argv[i];
-
-        if (strlen(filename) < 4) {
-            printf("Error: provided filename %s is too short.\n", filename);
-            exit(1);
-        }
-        else {
-            fileExtension = &filename[strlen(filename)-3];
-
-            if (strcmp(fileExtension, ASSEMBLY_FILE_TYPE) != 0) {
-                printf("Error: file %s has extension %s but expected %s\n", filename, fileExtension, ASSEMBLY_FILE_TYPE);
-                exit(1);
-            }
-        }
-        if (!(fd = fopen(filename, "r"))) {
-            printf("Error: File %s does not exist or missing read permissions\n", filename);
-            exit(1);
-        }
-    }
+    verifyInput(argc, argv);
 
     /* run the actual scan */
     for (i = 1; i < argc; i++) {
@@ -62,13 +35,9 @@ int main(int argc, char *argv[])
         spreadMacros(filenameNoExtention);
         succesful_scan = firstScan(filenameNoExtention);
 
-        printSymbols();
 
-        if (succesful_scan == 0) {
-            printf("calling second scan\n");
+        if (succesful_scan == 0)
             secondScan(filenameNoExtention);
-         }
-        /*generateObjectFile("object", 100, "00000000111000");*/
     }
 
     return succesful_scan;

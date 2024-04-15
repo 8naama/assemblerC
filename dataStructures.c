@@ -20,7 +20,12 @@ Symbol *findInSymbolsTable(char name[])
 }
 
 
-/* test function: to be removed in the final version */
+/* 
+Test function which prints the Symbols table. 
+
+Input: none
+Output: none but prints the symbol table to the console
+*/
 void printSymbols() {
     Symbol *curr = symbolTableHead;
     char method[20] = "", type[10] = "";

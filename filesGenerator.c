@@ -117,7 +117,7 @@ char *_encodeWord(char word[])
     wordEncoded[0] = '\0';
 
     /* Translate base2 >> base4 >> special encoding */
-    for (i=0; i < 14; i+=2) {
+    for (i=0; i < BINARY_WORD_SIZE; i+=2) {
         twoBinaryDigits[2] = '\0';
         strncpy(twoBinaryDigits, word, 2);
         word += 2;

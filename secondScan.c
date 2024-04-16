@@ -110,13 +110,13 @@ void _generateDataWords(char filename[], char line[])
     if (strcmp(action, "string") == 0) {
         for (i = 1; i < strlen(args)-1; i++) {
             if (isalpha(args[i])) {
-                strncpy(newWord, _decimalToBinary((int)args[i], 14), 14);
+                strncpy(newWord, _decimalToBinary((int)args[i], BINARY_WORD_SIZE), BINARY_WORD_SIZE);
                 addBinaryWordInObjectFile(filename, currentAddr, newWord);
                 currentAddr++;
             }
         }
         /* create word for '\0' */
-        strncpy(newWord, _decimalToBinary(0, 14), 14);
+        strncpy(newWord, _decimalToBinary(0, BINARY_WORD_SIZE), BINARY_WORD_SIZE);
         addBinaryWordInObjectFile(filename, currentAddr, newWord);
         currentAddr++;
     }
@@ -131,7 +131,7 @@ void _generateDataWords(char filename[], char line[])
             else
                 val = atoi(arg);
 
-            strncpy(newWord, _decimalToBinary(val, 14), 14);
+            strncpy(newWord, _decimalToBinary(val, BINARY_WORD_SIZE), BINARY_WORD_SIZE);
             addBinaryWordInObjectFile(filename, currentAddr, newWord);
             currentAddr++;
 
@@ -394,7 +394,8 @@ void _generateNextWordPerArgType(char filename[], char arg[], enum argType type,
 
 
 /*
-Sends the given arguments to functions which generates binary words based on the given source and destenation arguments.arguments types.
+Manages the creation of the binary words of code instructions, after the first word;
+Sends the given arguments to functions which generates binary words based on the given source and destenation arguments types.
 
 Input: source and destenation argument names and address types, as well as filename to output the files for.
 Output: none
@@ -411,13 +412,16 @@ void _generateNextCodeWords(char filename[], char srcArg[], enum argType srcType
 
         /* generate destenation word\s */
         if (destType != noArg)
-            _generateNextWordPerArgType(filename, destArg, destType, 0);
+            _generateNextWordPerArgType(filename, destArg, destType, 1);
     }
 }
 
 
 /*
-Generates the binary words for code instructions.
+1. Parses the line to extrac from it the command, the source and the destentation (if they exist)
+2. If exists, check the source and destentation addressing type
+3. Generates the first binary word for code instructions and outputs to the object file with the given file's name.
+4. Call function  _generateNextCodeWords to generate the rest of the binary words.
 
 Input: instruction line and it's type (code0, code1, code2, data) and the filename to output the binary words into at the end.
 Output: none
@@ -466,7 +470,7 @@ void _generateCodeWords(char filename[], char line[], enum lineType currLineType
 
 
 /* 
-Checks the given line type and sends it to relevant function that would generate the binary word.
+Checks the given line's type and sends it to relevant function that would generate the binary word.
 
 Input: the line that was read and the filename to output the words into
 Output: none

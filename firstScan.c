@@ -54,26 +54,27 @@ int _saveSymbolToTable(char name[], enum SymbolType type, enum SymbolUpdateMetho
             
             symbolTableNext = symbolTableHead;
         }
-        else {
-        newItem = (Symbol*) malloc(sizeof(Symbol));
+        else {  /* new item, not the first one */
+            newItem = (Symbol*) malloc(sizeof(Symbol));
+ 
+            if (!newItem) {
+                printf("Error: Failed to allocate memory for Symbol %s\n", name);
+                return 1;
+            }
 
-        if (!newItem) {
-            printf("Error: Failed to allocate memory for Symbol %s\n", name);
-            return 1;
+            strcpy(newItem->name, name);
+            newItem->type = type;
+            newItem->method = method;
+            newItem->value = value;
+            newItem->isDefinedAlready = isDefined;
+            newItem->next = NULL;
+
+            symbolTableNext->next = newItem;
+            symbolTableNext = newItem;
         }
-
-        strcpy(newItem->name, name);
-        newItem->type = type;
-        newItem->method = method;
-        newItem->value = value;
-        newItem->isDefinedAlready = isDefined;
-        newItem->next = NULL;
-
-        symbolTableNext->next = newItem;
-        symbolTableNext = newItem;
-}
     }
-    else {
+    else {  /* symbol with given name exists in the table, 2 valid options below */
+
         /* Symbol's value and type saved already, now update that it's .entry or .extern */
         if (isDefined == 0 && alreadyExists->isDefinedAlready == 1)
             alreadyExists->method = method;

@@ -10,22 +10,23 @@ Output: 1 if start of a macro, -1 if end of macro, 0 otherwise
 */
 int _isMacroDefinition(char line[])
 {
-	int index = 0 , mIndex = 0 ;
-	char mcr [MAX_LINE_LEN];
-	memset(mcr , '\0' , MAX_LINE_LEN);
-	while(isspace(line[index]))
-	       index ++;
-	while (line[index] != '\n' && !isspace(line[index]))
-	{
-	    	mcr[mIndex] = line[index];
-		mIndex++;
-		index++;
-	}
-	if (!strcmp(mcr, "mcr"))
-	    	return 1;
-	if (!strcmp(mcr, "endmcr"))
-	    	return -1;
-	return 0;
+    int index = 0 , mIndex = 0 ;
+    char mcr [MAX_LINE_LEN];
+
+    memset(mcr , '\0' , MAX_LINE_LEN);
+
+    while(isspace(line[index]))
+        index ++;
+    while (line[index] != '\n' && !isspace(line[index])) {
+        mcr[mIndex] = line[index];
+        mIndex++;
+        index++;
+    }
+    if (!strcmp(mcr, "mcr"))
+        return 1;
+    if (!strcmp(mcr, "endmcr"))
+        return -1;
+    return 0;
 }
 
 
@@ -37,19 +38,19 @@ Output: none
 */
 void _insertMacroNameToTable(struct Macro *pMcr, char line[])
 {
-	char mName[MAX_LINE_LEN];
-        enum lineType isNameValid;
+    char mName[MAX_LINE_LEN];
+    enum lineType isNameValid;
 
-	sscanf(line, "mcr %s\n", mName);
+    sscanf(line, "mcr %s\n", mName);
 
-        /* Validate macro name */
-        isNameValid = findInstructionType(mName);
-        if (isNameValid != none || isRegistry(mName)) {
-            printf("Error: Macro name '%s' is invalid.\nPlease make sure to name your Macros in a unique name that is not a saved instruction name\n", mName);
-            exit(1);
-        }
+    /* Validate macro name */
+    isNameValid = findInstructionType(mName);
+    if (isNameValid != none || isRegistry(mName)) {
+        printf("Error: Macro name '%s' is invalid.\nPlease make sure to name your Macros in a unique name that is not a saved instruction name\n", mName);
+        exit(1);
+    }
 
-	strcpy(pMcr->name,mName);
+    strcpy(pMcr->name,mName);
 }
 
 
@@ -62,17 +63,18 @@ Output: none
 */
 void _insertMacroContentToTable(struct Macro *pMcr, FILE *fp)
 {
-	char line [MAX_LINE_LEN];
-	char mContent [MAX_LINE_LEN];
-	memset(line , '\0' , MAX_LINE_LEN);
-	memset(mContent , '\0' , MAX_LINE_LEN);
-	fgets(line, MAX_LINE_LEN, fp);
-	while(_isMacroDefinition(line) != -1)
-	{
-		strncat(mContent, line , MAX_LINE_LEN);   
-	    fgets(line, MAX_LINE_LEN, fp);
-	}
-	strcpy(pMcr->content,mContent);
+    char line [MAX_LINE_LEN];
+    char mContent [MAX_LINE_LEN];
+
+    memset(line , '\0' , MAX_LINE_LEN);
+    memset(mContent , '\0' , MAX_LINE_LEN);
+    fgets(line, MAX_LINE_LEN, fp);
+
+    while(_isMacroDefinition(line) != -1) {
+        strncat(mContent, line , MAX_LINE_LEN);   
+        fgets(line, MAX_LINE_LEN, fp);
+    }
+    strcpy(pMcr->content,mContent);
 }
 
 
@@ -86,32 +88,29 @@ Output: 1 if failed, 0 if suceeded
 */
 int _readFile(char filename[] ,struct Macro *mHead)
 {
-	char line [MAX_LINE_LEN];
-	FILE *fpr;
-	memset(line , '\0' , MAX_LINE_LEN);
-	fpr = fopen(filename,"r");
+    char line [MAX_LINE_LEN];
+    FILE *fpr;
+    memset(line , '\0' , MAX_LINE_LEN);
+    fpr = fopen(filename,"r");
 
-	if(fpr == NULL)
-	{
-		printf("Error: failed to open file: %s\n" , filename);  
-	     	return 1;
-	}
+    if(fpr == NULL) {
+        printf("Error: failed to open file: %s\n" , filename);  
+        return 1;
+    }
 
-	while(fgets(line, MAX_LINE_LEN, fpr))
-	{
-		struct  Macro* temp = NULL;
-		temp = (struct Macro*)malloc(sizeof(struct Macro));
+    while(fgets(line, MAX_LINE_LEN, fpr)) {
+        struct  Macro* temp = NULL;
+        temp = (struct Macro*)malloc(sizeof(struct Macro));
 
-		/* start of macro */
-		if(_isMacroDefinition(line) == 1)
-		{ 
-			_insertMacroNameToTable(temp , line);
-			_insertMacroContentToTable(temp , fpr);
-			mHead -> next = temp ;
-			mHead = temp;
-		}
-	}
-	 return 0;
+        /* start of macro */
+        if(_isMacroDefinition(line) == 1) { 
+            _insertMacroNameToTable(temp , line);
+            _insertMacroContentToTable(temp , fpr);
+            mHead -> next = temp ;
+            mHead = temp;
+        }
+    }
+    return 0;
 }
 
 
@@ -123,31 +122,28 @@ Output: 1 if given line is a macro command, 0 otherwise
 */
 int _isMacroCommand(char line[], FILE *fpw,struct Macro *mTail)
 {
-	int index = 0, mIndex = 0;
-	char mName [MAX_LINE_LEN];
-	struct  Macro *temp = NULL;
-	temp = (struct Macro*)malloc(sizeof(struct Macro));
-	temp = mTail;
-	memset(mName, '\0' , MAX_LINE_LEN);
+    int index = 0, mIndex = 0;
+    char mName [MAX_LINE_LEN];
+    struct  Macro *temp = NULL;
+    temp = (struct Macro*)malloc(sizeof(struct Macro));
+    temp = mTail;
+    memset(mName, '\0' , MAX_LINE_LEN);
 
-
-	while(isspace(line[index]))
-		index ++;
-	while (!isspace(line[index]) && line[index] != '\n')
-	{
-		mName[mIndex] = line[index];
-	    	mIndex++;
-	    	index++;
-	}
-	while (temp != NULL)
-	{
-	    if (!strcmp(temp->name , mName)) {
-	    	fprintf(fpw, "%s", temp->content);
-	    	return 1;
-	    }
-	    temp = temp ->next;
-	}
-	return 0;
+    while(isspace(line[index]))
+	index ++;
+    while (!isspace(line[index]) && line[index] != '\n') {
+	mName[mIndex] = line[index];
+    	mIndex++;
+    	index++;
+    }
+    while (temp != NULL) {
+	if (!strcmp(temp->name , mName)) {
+            fprintf(fpw, "%s", temp->content);
+	    return 1;
+        }
+        temp = temp ->next;
+    }
+    return 0;
 }
 
 
@@ -192,7 +188,7 @@ Input: String inputFilename and outputFilename, and a pointer to the macro table
 Output: none
 */
 void _writeFile(char inputFilename[], char outputFilename[], struct Macro *tail) {
-	FILE *fpr, *fpw;
+    FILE *fpr, *fpw;
     char line[MAX_LINE_LEN];
     int mflag;
 

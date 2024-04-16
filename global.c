@@ -1,6 +1,7 @@
 #include "global.h"
 
 
+/* Initialize the known assembly words */
 char *commandTwoArgs[5] = {"mov", "cmp", "add", "sub", "lea"};
 char *commandOneArgs[9] = {"not", "clr", "inc", "dec", "jmp", "bne", "red", "prn", "jsr"};
 char *commandNoArgs[2] = {"rts", "hlt"};
@@ -164,4 +165,29 @@ void verifyInput(int argc, char *argv[])
             exit(1);
         }
     }
+}
+
+
+/*
+Remove the extention from the given filename.
+
+Input: String file name
+Output: the given filename without it's extention
+*/
+char *removeExtentionFromName(char filename[])
+{
+    char* filenameNoExtention;
+    int filenameLen;
+    filenameLen = strlen(filename);
+    filenameNoExtention = (char *) malloc(filenameLen+1);
+
+    if (!filenameNoExtention) {
+        printf("Error: Failed to allocate memory while generating filename.\n");
+        exit(1);
+    }
+
+    /* cut the extention from the name */
+    strncpy(filenameNoExtention, filename, filenameLen - 3);
+    filenameNoExtention[filenameLen - 3] = '\0';
+    return filenameNoExtention;
 }

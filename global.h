@@ -1,9 +1,9 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "limitations.h"
 
-#define MAX_LINE_LEN 80
-#define MAX_LABEL_NAME_LEN 31
+#define BINARY_WORD_SIZE 14
 #define MACRO_OUTPUT_FILE_TYPE ".am"
 #define ASSEMBLY_FILE_TYPE ".as"
 #define COMMENT_SIGN ";"
@@ -23,4 +23,6 @@ int startsWith(char *word, char *substring);
 enum lineType findInstructionType(char line[]);
 int isRegistry(char arg[]);
 void verifyInput(int argc, char *argv[]);
+char *removeExtentionFromName(char filename[]);
+
 

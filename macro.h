@@ -2,9 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-
-#define MAX_LABEL_NAME_LEN 31
-#define MAX_LINE_LEN 80
+#include "limitations.h"
 
 
 struct Macro {

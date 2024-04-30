@@ -8,7 +8,11 @@
 
 
 /*
-This main function is temporary for test purpose.
+The main function of the program.
+Reads assembly files, and generates file with macro spread out, object file based on the assembly content, and entry or external files if the code had such variables in it.
+
+Input: file names with ASSEMBLY_FILE_TYPE extention
+Output: 0 if successful, 1 otherwise. 
 */
 int main(int argc, char *argv[])
 {
